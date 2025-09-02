@@ -5,134 +5,83 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Indian Stock Analytics Pro</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: Arial, sans-serif;
             background: linear-gradient(135deg, #ff9933 0%, #138808 50%, #000080 100%);
-            min-height: 100vh;
-            color: #333;
+            margin: 0;
             padding: 20px;
+            color: #333;
         }
-
         .container {
             max-width: 1200px;
             margin: 0 auto;
         }
-
         .header {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 30px;
-            margin-bottom: 30px;
             text-align: center;
             color: white;
+            margin-bottom: 30px;
         }
-
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-        }
-
         .card {
-            background: rgba(255, 255, 255, 0.95);
+            background: white;
             border-radius: 15px;
             padding: 25px;
             margin-bottom: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
-
         .search-box {
             display: flex;
             gap: 15px;
             margin-bottom: 20px;
         }
-
         .search-box input {
             flex: 1;
             padding: 15px;
-            border: 2px solid #e1e5e9;
+            border: 2px solid #ddd;
             border-radius: 10px;
             font-size: 16px;
         }
-
         .search-box button {
             padding: 15px 30px;
-            background: linear-gradient(135deg, #ff9933 0%, #138808 100%);
+            background: linear-gradient(135deg, #ff9933, #138808);
             color: white;
             border: none;
             border-radius: 10px;
-            font-size: 16px;
             cursor: pointer;
+            font-size: 16px;
         }
-
         .indices-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
-            margin-bottom: 20px;
         }
-
         .index-card {
-            background: linear-gradient(135deg, #ff9933 0%, #138808 100%);
+            background: linear-gradient(135deg, #ff9933, #138808);
             color: white;
             padding: 20px;
             border-radius: 10px;
             text-align: center;
         }
-
-        .index-name {
-            font-size: 1.1rem;
-            margin-bottom: 10px;
-        }
-
-        .index-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
         .positive { color: #10b981; }
         .negative { color: #ef4444; }
-
         .stock-result {
             background: #f8f9fa;
             padding: 20px;
             border-radius: 10px;
             margin: 10px 0;
         }
-
-        .stock-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
         .loading {
             text-align: center;
             color: #666;
             padding: 20px;
         }
-
         .error {
             color: #ef4444;
             text-align: center;
             padding: 20px;
-        }
-
-        @media (max-width: 768px) {
-            .search-box {
-                flex-direction: column;
-            }
-            .header h1 {
-                font-size: 2rem;
-            }
         }
     </style>
 </head>
@@ -149,7 +98,6 @@
                 <input type="text" id="stockSymbol" placeholder="Enter stock symbol (e.g., RELIANCE, TCS, HDFCBANK)" />
                 <button onclick="searchStock()">Search</button>
             </div>
-            <p style="font-size: 0.9rem; color: #666;">Popular: RELIANCE, TCS, HDFCBANK, INFY, ICICIBANK</p>
         </div>
 
         <div class="card">
@@ -170,17 +118,9 @@
     </div>
 
     <script>
-        // Load data on page load
         window.addEventListener('load', function() {
             loadIndices();
             loadTrending();
-        });
-
-        // Allow Enter key to search
-        document.getElementById('stockSymbol').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                searchStock();
-            }
         });
 
         async function loadIndices() {
@@ -193,8 +133,8 @@
                 if (data.indices && data.indices.length > 0) {
                     container.innerHTML = data.indices.map(index => `
                         <div class="index-card">
-                            <div class="index-name">${index.name}</div>
-                            <div class="index-value">₹${index.current_price.toLocaleString('en-IN')}</div>
+                            <div>${index.name}</div>
+                            <div style="font-size: 1.5rem; font-weight: bold;">₹${index.current_price.toLocaleString('en-IN')}</div>
                             <div class="${index.change >= 0 ? 'positive' : 'negative'}">
                                 ${index.change >= 0 ? '+' : ''}₹${index.change.toFixed(2)} (${index.change_percent.toFixed(2)}%)
                             </div>
@@ -218,7 +158,7 @@
                 if (data.trending && data.trending.length > 0) {
                     container.innerHTML = data.trending.map(stock => `
                         <div class="stock-result">
-                            <div class="stock-info">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <div>
                                     <strong>${stock.symbol.replace('.NS', '')}</strong>
                                     <div style="font-size: 0.9rem; color: #666;">${stock.name}</div>
@@ -259,7 +199,7 @@
                         <div class="card">
                             <h3>${data.company_name} (${data.symbol})</h3>
                             <div class="stock-result">
-                                <div class="stock-info">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
                                     <div>
                                         <div style="font-size: 1.5rem; font-weight: bold;">₹${data.current_price.toLocaleString('en-IN')}</div>
                                         <div style="font-size: 0.9rem; color: #666;">Exchange: ${data.exchange}</div>

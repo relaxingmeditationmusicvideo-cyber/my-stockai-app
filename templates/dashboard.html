@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Analytics Pro</title>
+    <title>Indian Stock Analytics Pro</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         * {
@@ -14,7 +14,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #ff9933 0%, #138808 50%, #000080 100%);
             min-height: 100vh;
             color: #333;
         }
@@ -43,7 +43,7 @@
         }
 
         .header p {
-            color: rgba(255, 255, 255, 0.8);
+            color: rgba(255, 255, 255, 0.9);
             font-size: 1.1rem;
         }
 
@@ -72,12 +72,12 @@
 
         .search-box input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #ff9933;
         }
 
         .search-box button {
             padding: 15px 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #ff9933 0%, #138808 100%);
             color: white;
             border: none;
             border-radius: 10px;
@@ -88,6 +88,13 @@
 
         .search-box button:hover {
             transform: translateY(-2px);
+        }
+
+        .help-text {
+            font-size: 0.9rem;
+            color: #666;
+            text-align: center;
+            margin-top: 10px;
         }
 
         .grid {
@@ -120,11 +127,15 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
         }
 
         .stock-symbol {
             font-weight: bold;
             font-size: 1.1rem;
+            color: #ff9933;
         }
 
         .stock-price {
@@ -133,11 +144,11 @@
         }
 
         .positive {
-            color: #10b981;
+            color: #138808;
         }
 
         .negative {
-            color: #ef4444;
+            color: #dc2626;
         }
 
         .chart-container {
@@ -155,7 +166,7 @@
         }
 
         .error {
-            color: #ef4444;
+            color: #dc2626;
             text-align: center;
             padding: 20px;
         }
@@ -168,17 +179,18 @@
         }
 
         .index-item {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #ff9933 0%, #138808 100%);
             color: white;
             padding: 15px 20px;
             border-radius: 10px;
             text-align: center;
             min-width: 150px;
+            flex: 1;
         }
 
         .index-name {
             font-size: 0.9rem;
-            opacity: 0.8;
+            opacity: 0.9;
         }
 
         .index-value {
@@ -188,6 +200,27 @@
 
         .index-change {
             font-size: 0.9rem;
+        }
+
+        .popular-stocks {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .stock-chip {
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 20px;
+            padding: 8px 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .stock-chip:hover {
+            background: #0ea5e9;
+            color: white;
         }
 
         @media (max-width: 768px) {
@@ -203,41 +236,64 @@
                 flex-direction: column;
                 align-items: center;
             }
+            
+            .index-item {
+                min-width: 200px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🚀 Stock Analytics Pro</h1>
-            <p>Real-time stock market analysis and insights</p>
+            <h1>🇮🇳 Indian Stock Analytics Pro</h1>
+            <p>Real-time NSE & BSE market analysis | NIFTY, SENSEX & Indian Stocks</p>
         </div>
 
         <div class="search-section">
             <div class="search-box">
-                <input type="text" id="stockSymbol" placeholder="Enter stock symbol (e.g., AAPL, GOOGL, MSFT)" />
-                <button onclick="searchStock()">Search</button>
+                <input type="text" id="stockSymbol" placeholder="Enter Indian stock symbol (e.g., RELIANCE, TCS, INFY, HDFCBANK)" />
+                <button onclick="searchStock()">Search Stock</button>
+            </div>
+            <div class="help-text">
+                💡 Popular stocks: RELIANCE, TCS, HDFCBANK, INFY, ICICIBANK, BHARTIARTL, ITC, SBIN
             </div>
         </div>
 
         <div class="card">
-            <h3>📈 Market Indices</h3>
+            <h3>📊 Indian Market Indices</h3>
             <div id="marketIndices" class="market-indices">
-                <div class="loading">Loading market indices...</div>
+                <div class="loading">Loading NIFTY, SENSEX & other indices...</div>
             </div>
         </div>
 
         <div id="stockResults"></div>
 
         <div class="chart-container" id="chartContainer" style="display: none;">
-            <h3>📊 Price Chart</h3>
+            <h3>📈 Price Chart (₹)</h3>
             <canvas id="priceChart"></canvas>
         </div>
 
-        <div class="card">
-            <h3>🔥 Trending Stocks</h3>
-            <div id="trendingStocks">
-                <div class="loading">Loading trending stocks...</div>
+        <div class="grid">
+            <div class="card">
+                <h3>🔥 Top Indian Stocks</h3>
+                <div id="trendingStocks">
+                    <div class="loading">Loading top Indian stocks...</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>🏢 Quick Search</h3>
+                <div class="popular-stocks">
+                    <div class="stock-chip" onclick="quickSearch('RELIANCE')">RELIANCE</div>
+                    <div class="stock-chip" onclick="quickSearch('TCS')">TCS</div>
+                    <div class="stock-chip" onclick="quickSearch('HDFCBANK')">HDFC BANK</div>
+                    <div class="stock-chip" onclick="quickSearch('INFY')">INFOSYS</div>
+                    <div class="stock-chip" onclick="quickSearch('ICICIBANK')">ICICI BANK</div>
+                    <div class="stock-chip" onclick="quickSearch('BHARTIARTL')">BHARTI AIRTEL</div>
+                    <div class="stock-chip" onclick="quickSearch('ITC')">ITC</div>
+                    <div class="stock-chip" onclick="quickSearch('SBIN')">SBI</div>
+                </div>
             </div>
         </div>
     </div>
@@ -260,7 +316,7 @@
 
         async function loadMarketIndices() {
             try {
-                const response = await fetch('/api/market-indices');
+                const response = await fetch('/api/nifty-indices');
                 const data = await response.json();
                 
                 const container = document.getElementById('marketIndices');
@@ -269,9 +325,9 @@
                     container.innerHTML = data.indices.map(index => `
                         <div class="index-item">
                             <div class="index-name">${index.name}</div>
-                            <div class="index-value">$${index.current_price.toLocaleString()}</div>
+                            <div class="index-value">₹${index.current_price.toLocaleString('en-IN')}</div>
                             <div class="index-change ${index.change >= 0 ? 'positive' : 'negative'}">
-                                ${index.change >= 0 ? '+' : ''}${index.change.toFixed(2)} (${index.change_percent.toFixed(2)}%)
+                                ${index.change >= 0 ? '+' : ''}₹${index.change.toFixed(2)} (${index.change_percent.toFixed(2)}%)
                             </div>
                         </div>
                     `).join('');
@@ -285,7 +341,7 @@
 
         async function loadTrendingStocks() {
             try {
-                const response = await fetch('/api/trending');
+                const response = await fetch('/api/trending-indian');
                 const data = await response.json();
                 
                 const container = document.getElementById('trendingStocks');
@@ -294,11 +350,11 @@
                     container.innerHTML = data.trending.map(stock => `
                         <div class="stock-info">
                             <div>
-                                <span class="stock-symbol">${stock.symbol}</span>
+                                <span class="stock-symbol">${stock.symbol.replace('.NS', '')}</span>
                                 <div style="font-size: 0.9rem; color: #666;">${stock.name}</div>
                             </div>
                             <div style="text-align: right;">
-                                <div class="stock-price">$${stock.current_price}</div>
+                                <div class="stock-price">₹${stock.current_price.toLocaleString('en-IN')}</div>
                                 <div class="${stock.change_percent >= 0 ? 'positive' : 'negative'}">
                                     ${stock.change_percent >= 0 ? '+' : ''}${stock.change_percent.toFixed(2)}%
                                 </div>
@@ -318,7 +374,7 @@
             if (!symbol) return;
 
             const resultsContainer = document.getElementById('stockResults');
-            resultsContainer.innerHTML = '<div class="card"><div class="loading">Searching for ' + symbol + '...</div></div>';
+            resultsContainer.innerHTML = '<div class="card"><div class="loading">Searching for ' + symbol + ' in NSE/BSE...</div></div>';
 
             try {
                 // Get stock data
@@ -336,6 +392,11 @@
             }
         }
 
+        function quickSearch(symbol) {
+            document.getElementById('stockSymbol').value = symbol;
+            searchStock();
+        }
+
         function displayStockData(stock) {
             const resultsContainer = document.getElementById('stockResults');
             
@@ -345,15 +406,20 @@
             resultsContainer.innerHTML = `
                 <div class="card">
                     <h3>${stock.company_name} (${stock.symbol})</h3>
+                    <div style="margin-bottom: 15px;">
+                        <span style="background: #e3f2fd; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">
+                            ${stock.exchange} • ${stock.currency}
+                        </span>
+                    </div>
                     <div class="stock-info">
-                        <div class="stock-price">$${stock.current_price}</div>
+                        <div class="stock-price">₹${stock.current_price.toLocaleString('en-IN')}</div>
                         <div class="${changeClass}">
-                            ${changeSymbol}$${stock.change.toFixed(2)} (${stock.change_percent.toFixed(2)}%)
+                            ${changeSymbol}₹${stock.change.toFixed(2)} (${stock.change_percent.toFixed(2)}%)
                         </div>
                     </div>
                     <div style="margin-top: 15px; font-size: 0.9rem; color: #666;">
-                        <div>Volume: ${stock.volume.toLocaleString()}</div>
-                        <div>Market Cap: $${(stock.market_cap / 1000000000).toFixed(2)}B</div>
+                        <div>Volume: ${stock.volume.toLocaleString('en-IN')}</div>
+                        <div>Market Cap: ₹${(stock.market_cap / 10000000).toFixed(2)} Cr</div>
                         <div>P/E Ratio: ${stock.pe_ratio ? stock.pe_ratio.toFixed(2) : 'N/A'}</div>
                     </div>
                 </div>
@@ -376,7 +442,10 @@
                         priceChart.destroy();
                     }
 
-                    const labels = data.data.map(item => item.date);
+                    const labels = data.data.map(item => {
+                        const date = new Date(item.date);
+                        return date.toLocaleDateString('en-IN');
+                    });
                     const prices = data.data.map(item => item.close);
 
                     priceChart = new Chart(ctx, {
@@ -384,10 +453,10 @@
                         data: {
                             labels: labels,
                             datasets: [{
-                                label: `${symbol} Price`,
+                                label: `${symbol} Price (₹)`,
                                 data: prices,
-                                borderColor: '#667eea',
-                                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                                borderColor: '#ff9933',
+                                backgroundColor: 'rgba(255, 153, 51, 0.1)',
                                 tension: 0.1,
                                 fill: true
                             }]
@@ -399,7 +468,7 @@
                                     beginAtZero: false,
                                     title: {
                                         display: true,
-                                        text: 'Price ($)'
+                                        text: 'Price (₹)'
                                     }
                                 },
                                 x: {

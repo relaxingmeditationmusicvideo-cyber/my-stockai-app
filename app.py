@@ -6,12 +6,10 @@ app = Flask(__name__)
 
 @app.route('/')
 def dashboard():
-    """Main dashboard page"""
     return render_template('dashboard.html')
 
 @app.route('/health')
 def health_check():
-    """Health check endpoint"""
     return jsonify({
         'status': 'healthy',
         'service': 'Indian Stock Analytics Pro',
@@ -20,9 +18,7 @@ def health_check():
 
 @app.route('/api/stock/<symbol>')
 def get_stock_data(symbol):
-    """Get Indian stock data"""
     try:
-        # Add .NS for NSE if not present
         if not symbol.endswith('.NS') and not symbol.endswith('.BO'):
             symbol = symbol.upper() + '.NS'
         
@@ -53,7 +49,6 @@ def get_stock_data(symbol):
 
 @app.route('/api/nifty-indices')
 def get_nifty_indices():
-    """Get Indian market indices"""
     try:
         indices = {
             '^NSEI': 'NIFTY 50',
@@ -89,7 +84,6 @@ def get_nifty_indices():
 
 @app.route('/api/trending')
 def get_trending_stocks():
-    """Get popular Indian stocks"""
     try:
         stocks = ['RELIANCE.NS', 'TCS.NS', 'HDFCBANK.NS', 'INFY.NS', 'ICICIBANK.NS']
         

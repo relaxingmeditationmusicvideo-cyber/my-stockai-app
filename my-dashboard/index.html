@@ -1,641 +1,663 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>StockAnalytics Pro - Market Dashboard</title>
-  <style>
-    /* Your existing CSS code here... */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-      color: #333;
-      min-height: 100vh;
-    }
-    .header {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
-      padding: 1rem 2rem;
-      box-shadow: 0 2px 20px rgba(0,0,0,0.1);
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-    }
-    .header-content {
-      max-width: 1400px;
-      margin: 0 auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .logo {
-      font-size: 1.8rem;
-      font-weight: bold;
-      background: linear-gradient(45deg, #2196F3, #21CBF3);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    .nav-menu {
-      display: flex;
-      gap: 2rem;
-      list-style: none;
-    }
-    .nav-menu a {
-      text-decoration: none;
-      color: #333;
-      font-weight: 500;
-      padding: 0.5rem 1rem;
-      border-radius: 25px;
-      transition: all 0.3s ease;
-    }
-    .nav-menu a:hover, .nav-menu a.active {
-      background: #2196F3;
-      color: white;
-      transform: translateY(-2px);
-    }
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 2rem;
-    }
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-      gap: 2rem;
-      margin-bottom: 2rem;
-    }
-    .card {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
-      border-radius: 20px;
-      padding: 1.5rem;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-      transition: all 0.3s ease;
-      border: 1px solid rgba(255,255,255,0.2);
-    }
-    .card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-    }
-    .card-title {
-      font-size: 1.2rem;
-      font-weight: bold;
-      margin-bottom: 1rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .card-icon {
-      width: 24px;
-      height: 24px;
-      background: linear-gradient(45deg, #2196F3, #21CBF3);
-      border-radius: 50%;
-    }
-    .market-overview {
-      grid-column: span 2;
-    }
-    .index-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-      margin-top: 1rem;
-    }
-    .index-item {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 1rem;
-      border-radius: 15px;
-      text-align: center;
-      transition: transform 0.3s ease;
-    }
-    .index-item:hover {
-      transform: scale(1.05);
-    }
-    .index-name {
-      font-weight: bold;
-      font-size: 0.9rem;
-      margin-bottom: 0.5rem;
-    }
-    .index-value {
-      font-size: 1.4rem;
-      font-weight: bold;
-    }
-    .index-change {
-      font-size: 0.8rem;
-      margin-top: 0.25rem;
-    }
-    .positive { color: #4CAF50; }
-    .negative { color: #f44336; }
-    .stock-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem;
-    }
-    .stock-table th,
-    .stock-table td {
-      padding: 0.75rem;
-      text-align: left;
-      border-bottom: 1px solid #eee;
-    }
-    .stock-table th {
-      background: #f8f9fa;
-      font-weight: 600;
-      color: #555;
-    }
-    .stock-table tr:hover {
-      background: #f8f9fa;
-    }
-    .stock-symbol {
-      font-weight: bold;
-      color: #2196F3;
-      cursor: pointer;
-    }
-    .screener-buttons {
-      display: flex;
-      gap: 1rem;
-      margin-top: 1rem;
-      flex-wrap: wrap;
-    }
-    .btn {
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 25px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      text-decoration: none;
-      display: inline-block;
-      text-align: center;
-    }
-    .btn-primary {
-      background: linear-gradient(45deg, #2196F3, #21CBF3);
-      color: white;
-    }
-    .btn-success {
-      background: linear-gradient(45deg, #4CAF50, #45a049);
-      color: white;
-    }
-    .btn-danger {
-      background: linear-gradient(45deg, #f44336, #da190b);
-      color: white;
-    }
-    .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-    }
-    .chart-placeholder {
-      height: 200px;
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-      border-radius: 15px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #666;
-      font-weight: 500;
-      margin-top: 1rem;
-    }
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-      gap: 1rem;
-      margin-top: 1rem;
-    }
-    .stat-item {
-      text-align: center;
-      padding: 1rem;
-      background: #f8f9fa;
-      border-radius: 15px;
-    }
-    .stat-value {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #2196F3;
-    }
-    .stat-label {
-      font-size: 0.8rem;
-      color: #666;
-      margin-top: 0.25rem;
-    }
-    .live-indicator {
-      display: inline-block;
-      width: 8px;
-      height: 8px;
-      background: #4CAF50;
-      border-radius: 50%;
-      animation: pulse 2s infinite;
-      margin-right: 0.5rem;
-    }
-    @keyframes pulse {
-      0% { opacity: 1; }
-      50% { opacity: 0.5; }
-      100% { opacity: 1; }
-    }
-    .footer {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      color: white;
-      text-align: center;
-      padding: 2rem;
-      margin-top: 3rem;
-    }
-    @media (max-width: 768px) {
-      .header-content {
-        flex-direction: column;
-        gap: 1rem;
-      }
-      .nav-menu {
-        flex-wrap: wrap;
-        justify-content: center;
-      }
-      .market-overview {
-        grid-column: span 1;
-      }
-      .container {
-        padding: 1rem;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🇮🇳 Indian Stock Analytics Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .search-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        #stockInput {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        #stockInput:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .popular-stocks {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .stock-chip {
+            background: #f0f0f0;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .stock-chip:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .results-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .stock-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .stock-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+
+        .stock-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .stock-symbol {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .stock-price {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .price-positive {
+            color: #22c55e;
+        }
+
+        .price-negative {
+            color: #ef4444;
+        }
+
+        .stock-change {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .stock-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .error {
+            background: #fee;
+            color: #d00;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+
+        .success {
+            background: #efe;
+            color: #060;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+
+        .info {
+            background: #e6f3ff;
+            color: #0066cc;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+
+        .market-status {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .status-open {
+            color: #22c55e;
+            font-weight: bold;
+        }
+
+        .status-closed {
+            color: #ef4444;
+            font-weight: bold;
+        }
+
+        .api-status {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .api-configured {
+            color: #22c55e;
+        }
+
+        .api-not-configured {
+            color: #f59e0b;
+        }
+
+        @media (max-width: 768px) {
+            .search-container {
+                flex-direction: column;
+            }
+            
+            .popular-stocks {
+                justify-content: center;
+            }
+        }
+    </style>
 </head>
 <body>
-  <header class="header">
-    <div class="header-content">
-      <div class="logo">StockAnalytics Pro</div>
-      <nav>
-        <ul class="nav-menu">
-          <li><a href="#" class="active">Dashboard</a></li>
-          <li><a href="#">Screener</a></li>
-          <li><a href="#">Charts</a></li>
-          <li><a href="#">Analysis</a></li>
-          <li><a href="#">Watchlist</a></li>
-          <li><a href="#">Alerts</a></li>
-        </ul>
-      </nav>
-    </div>
-  </header>
-  <div class="container">
-    <div class="dashboard-grid">
-      <!-- Market Overview -->
-      <div class="card market-overview">
-        <div class="card-title">
-          <div class="card-icon"></div>
-          <span class="live-indicator"></span>Market Overview - Live Data
+    <div class="container">
+        <div class="header">
+            <h1>🇮🇳 Indian Stock Analytics Pro</h1>
+            <p>Real-time NSE & BSE Market Analysis</p>
         </div>
-        <div class="index-grid">
-          <div class="index-item">
-            <div class="index-name">NIFTY 50</div>
-            <div class="index-value">24,315.20</div>
-            <div class="index-change positive">+125.30 (+0.52%)</div>
-          </div>
-          <div class="index-item">
-            <div class="index-name">BANK NIFTY</div>
-            <div class="index-value">52,847.85</div>
-            <div class="index-change negative">-287.45 (-0.54%)</div>
-          </div>
-          <div class="index-item">
-            <div class="index-name">NIFTY IT</div>
-            <div class="index-value">35,189.60</div>
-            <div class="index-change positive">+412.30 (+1.19%)</div>
-          </div>
-          <div class="index-item">
-            <div class="index-name">SENSEX</div>
-            <div class="index-value">79,468.01</div>
-            <div class="index-change positive">+298.75 (+0.38%)</div>
-          </div>
-        </div>
-        <div class="chart-placeholder">
-          📈 Live Market Chart (Connect Real Data API)
-        </div>
-      </div>
-      <!-- Top Gainers -->
-      <div class="card">
-        <div class="card-title">
-          <div class="card-icon"></div>
-          Top Gainers
-        </div>
-        <table class="stock-table">
-          <thead>
-            <tr>
-              <th>Symbol</th>
-              <th>Price</th>
-              <th>Change%</th>
-            </tr>
-          </thead>
-          <tbody id="gainers-table">
-            <tr>
-              <td class="stock-symbol">TATAPOWER</td>
-              <td>₹425.30</td>
-              <td class="positive">+8.45%</td>
-            </tr>
-            <tr>
-              <td class="stock-symbol">ADANIPORTS</td>
-              <td>₹1,284.75</td>
-              <td class="positive">+7.23%</td>
-            </tr>
-            <tr>
-              <td class="stock-symbol">JSWSTEEL</td>
-              <td>₹956.80</td>
-              <td class="positive">+6.89%</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <!-- Top Losers -->
-      <div class="card">
-        <div class="card-title">
-          <div class="card-icon"></div>
-          Top Losers
-        </div>
-        <table class="stock-table">
-          <thead>
-            <tr>
-              <th>Symbol</th>
-              <th>Price</th>
-              <th>Change%</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="stock-symbol">BAJFINANCE</td>
-              <td>₹6,847.25</td>
-              <td class="negative">-4.32%</td>
-            </tr>
-            <tr>
-              <td class="stock-symbol">HDFC</td>
-              <td>₹1,698.45</td>
-              <td class="negative">-3.87%</td>
-            </tr>
-            <tr>
-              <td class="stock-symbol">ICICIBANK</td>
-              <td>₹1,187.30</td>
-              <td class="negative">-2.95%</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <!-- Stock Screeners -->
-      <div class="card">
-        <div class="card-title">
-          <div class="card-icon"></div>
-          Stock Screeners
-        </div>
-        <div class="screener-buttons">
-          <button class="btn btn-success" onclick="loadBullishStocks()">Bullish Screener</button>
-          <button class="btn btn-danger" onclick="loadBearishStocks()">Bearish Screener</button>
-          <button class="btn btn-primary" onclick="loadValueStocks()">Value Screener</button>
-          <button class="btn btn-primary" onclick="loadGrowthStocks()">Growth Screener</button>
-        </div>
-        <div id="screener-results">
-          <table class="stock-table" style="margin-top: 1rem;">
-            <thead>
-              <tr>
-                <th>Symbol</th>
-                <th>Price</th>
-                <th>Signal</th>
-              </tr>
-            </thead>
-            <tbody id="screener-table">
-              <tr>
-                <td class="stock-symbol">RELIANCE</td>
-                <td>₹2,847.65</td>
-                <td class="positive">Strong Buy</td>
-              </tr>
-              <tr>
-                <td class="stock-symbol">TCS</td>
-                <td>₹4,125.80</td>
-                <td class="positive">Buy</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <!-- Market Stats -->
-      <div class="card">
-        <div class="card-title">
-          <div class="card-icon"></div>
-          Market Statistics
-        </div>
-        <div class="stats-grid">
-          <div class="stat-item">
-            <div class="stat-value">2,847</div>
-            <div class="stat-label">Advances</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">1,653</div>
-            <div class="stat-label">Declines</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">₹4.2L Cr</div>
-            <div class="stat-label">Volume</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">4,500</div>
-            <div class="stat-label">Active</div>
-          </div>
-        </div>
-      </div>
-      <!-- Technical Analysis -->
-      <div class="card">
-        <div class="card-title">
-          <div class="card-icon"></div>
-          Technical Analysis Tools
-        </div>
-        <div class="screener-buttons">
-          <button class="btn btn-primary" onclick="showMovingAverage()">Moving Averages</button>
-          <button class="btn btn-primary" onclick="showCandlestick()">Candlestick Patterns</button>
-          <button class="btn btn-primary" onclick="showRSI()">RSI Analysis</button>
-        </div>
-        <div class="chart-placeholder">
-          📊 Technical Charts Area
-        </div>
-      </div>
-    </div>
-  </div>
-  <footer class="footer">
-    <p>&copy; 2025 StockAnalytics Pro. Educational tool for stock market analysis. Not investment advice.</p>
-    <p><small>Real-time data integration available via financial APIs (Alpha Vantage, Yahoo Finance, etc.)</small></p>
-  </footer>
-  
-  <script>
-    const baseURL = window.location.origin;
 
-    // Update Top Gainers Table
-    async function updateTopGainers() {
-      try {
-        const response = await fetch(`${baseURL}/api/stocks/gainers-losers`);
-        const data = await response.json();
-        const tbody = document.getElementById('gainers-table');
-        tbody.innerHTML = ''; // Clear existing rows
+        <div class="api-status" id="apiStatus">
+            <div id="apiStatusText">Checking API configuration...</div>
+        </div>
 
-        if (data.gainers && data.gainers.length > 0) {
-          data.gainers.forEach(stock => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-              <td class="stock-symbol">${stock.symbol}</td>
-              <td>₹${stock.price.toFixed(2)}</td>
-              <td class="${stock.changePercent >= 0 ? 'positive' : 'negative'}">${stock.changePercent.toFixed(2)}%</td>
+        <div class="market-status" id="marketStatus">
+            <div id="marketStatusText">Loading market status...</div>
+        </div>
+
+        <div class="search-section">
+            <div class="search-container">
+                <input type="text" id="stockInput" placeholder="Enter stock symbol (e.g., RELIANCE, TCS, INFY)" />
+                <button class="btn" onclick="searchStock()">📈 Get Quote</button>
+            </div>
+            <div class="popular-stocks">
+                <div class="stock-chip" onclick="searchStockSymbol('RELIANCE')">RELIANCE</div>
+                <div class="stock-chip" onclick="searchStockSymbol('TCS')">TCS</div>
+                <div class="stock-chip" onclick="searchStockSymbol('INFY')">INFY</div>
+                <div class="stock-chip" onclick="searchStockSymbol('HDFCBANK')">HDFCBANK</div>
+                <div class="stock-chip" onclick="searchStockSymbol('ITC')">ITC</div>
+                <div class="stock-chip" onclick="searchStockSymbol('SBIN')">SBIN</div>
+                <div class="stock-chip" onclick="searchStockSymbol('BHARTIARTL')">BHARTIARTL</div>
+                <div class="stock-chip" onclick="searchStockSymbol('ICICIBANK')">ICICIBANK</div>
+            </div>
+        </div>
+
+        <div id="results" class="results-section"></div>
+    </div>
+
+    <script>
+        // Multiple API endpoints for redundancy
+        const API_ENDPOINTS = {
+            yahoo: 'https://query1.finance.yahoo.com/v8/finance/chart/',
+            nse: 'https://www.nseindia.com/api/quote-equity?symbol=',
+            alphavantage: 'https://www.alphavantage.co/query'
+        };
+
+        // Alpha Vantage API Key - REPLACE WITH YOUR ACTUAL KEY
+        // Get free key from: https://www.alphavantage.co/support/#api-key
+        const ALPHA_VANTAGE_KEY = 'DW5XSCAW4N1TW0ZD';
+
+        // Popular Indian stock symbols with Yahoo Finance suffixes
+        const INDIAN_STOCKS = {
+            'RELIANCE': 'RELIANCE.NS',
+            'TCS': 'TCS.NS',
+            'INFY': 'INFY.NS',
+            'HDFCBANK': 'HDFCBANK.NS',
+            'ITC': 'ITC.NS',
+            'SBIN': 'SBIN.NS',
+            'BHARTIARTL': 'BHARTIARTL.NS',
+            'ICICIBANK': 'ICICIBANK.NS',
+            'HINDUNILVR': 'HINDUNILVR.NS',
+            'LT': 'LT.NS',
+            'WIPRO': 'WIPRO.NS',
+            'MARUTI': 'MARUTI.NS',
+            'ASIANPAINT': 'ASIANPAINT.NS',
+            'TECHM': 'TECHM.NS',
+            'TITAN': 'TITAN.NS'
+        };
+
+        // Check API configuration status
+        function checkAPIStatus() {
+            const statusDiv = document.getElementById('apiStatusText');
+            
+            if (ALPHA_VANTAGE_KEY === 'YOUR_API_KEY_HERE') {
+                statusDiv.innerHTML = '<span class="api-not-configured">⚠️ Alpha Vantage API key not configured - Using Yahoo Finance + Demo data</span>';
+            } else {
+                statusDiv.innerHTML = '<span class="api-configured">✅ Alpha Vantage API configured - Multiple data sources available</span>';
+            }
+        }
+
+        // Market status checker
+        function updateMarketStatus() {
+            const now = new Date();
+            const istTime = new Date(now.getTime() + (5.5 * 60 * 60 * 1000)); // IST offset
+            const hours = istTime.getUTCHours();
+            const minutes = istTime.getUTCMinutes();
+            const day = istTime.getUTCDay();
+            
+            const statusDiv = document.getElementById('marketStatusText');
+            
+            // Market hours: 9:15 AM to 3:30 PM IST, Monday to Friday
+            const marketOpen = (hours > 9 || (hours === 9 && minutes >= 15)) && 
+                              (hours < 15 || (hours === 15 && minutes <= 30)) && 
+                              day >= 1 && day <= 5;
+            
+            if (marketOpen) {
+                statusDiv.innerHTML = '<span class="status-open">🟢 NSE/BSE Market Open</span> • Live trading session';
+            } else {
+                statusDiv.innerHTML = '<span class="status-closed">🔴 NSE/BSE Market Closed</span> • Next session starts 9:15 AM IST';
+            }
+        }
+
+        // Search stock function
+        async function searchStock() {
+            const symbol = document.getElementById('stockInput').value.trim().toUpperCase();
+            if (!symbol) {
+                showError('Please enter a stock symbol');
+                return;
+            }
+            await getStockData(symbol);
+        }
+
+        // Search stock by symbol (for chips)
+        function searchStockSymbol(symbol) {
+            document.getElementById('stockInput').value = symbol;
+            getStockData(symbol);
+        }
+
+        // Main function to get stock data
+        async function getStockData(symbol) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="loading">🔄 Fetching stock data from multiple sources...</div>';
+
+            try {
+                // Try Yahoo Finance first (most reliable for Indian stocks)
+                const yahooSymbol = INDIAN_STOCKS[symbol] || `${symbol}.NS`;
+                console.log(`Trying Yahoo Finance for: ${yahooSymbol}`);
+                const stockData = await fetchFromYahoo(yahooSymbol);
+                
+                if (stockData) {
+                    displayStockData(stockData);
+                    showMessage('📊 Data from Yahoo Finance', 'success');
+                } else {
+                    // Fallback to alternative APIs
+                    await tryAlternativeAPIs(symbol);
+                }
+            } catch (error) {
+                console.error('Error fetching stock data:', error);
+                await tryAlternativeAPIs(symbol);
+            }
+        }
+
+        // Fetch from Yahoo Finance
+        async function fetchFromYahoo(symbol) {
+            try {
+                const response = await fetch(`${API_ENDPOINTS.yahoo}${symbol}`, {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                    }
+                });
+                
+                if (!response.ok) throw new Error(`Yahoo API failed: ${response.status}`);
+                
+                const data = await response.json();
+                
+                if (!data.chart || !data.chart.result || data.chart.result.length === 0) {
+                    throw new Error('Invalid data structure from Yahoo Finance');
+                }
+                
+                const result = data.chart.result[0];
+                const meta = result.meta;
+                const quote = result.indicators.quote[0];
+                
+                return {
+                    symbol: meta.symbol.replace('.NS', '').replace('.BO', ''),
+                    price: meta.regularMarketPrice || meta.previousClose,
+                    change: (meta.regularMarketPrice || meta.previousClose) - meta.previousClose,
+                    changePercent: (((meta.regularMarketPrice || meta.previousClose) - meta.previousClose) / meta.previousClose) * 100,
+                    high: meta.regularMarketDayHigh || meta.previousClose,
+                    low: meta.regularMarketDayLow || meta.previousClose,
+                    open: (quote.open && quote.open[quote.open.length - 1]) || meta.previousClose,
+                    volume: (quote.volume && quote.volume[quote.volume.length - 1]) || 0,
+                    marketCap: meta.marketCap || null,
+                    currency: meta.currency || 'INR',
+                    source: 'Yahoo Finance'
+                };
+            } catch (error) {
+                console.error('Yahoo Finance API error:', error);
+                return null;
+            }
+        }
+
+        // Fetch from Alpha Vantage API
+        async function fetchFromAlphaVantage(symbol) {
+            try {
+                // Don't try Alpha Vantage if no API key is set
+                if (ALPHA_VANTAGE_KEY === 'YOUR_API_KEY_HERE') {
+                    throw new Error('Alpha Vantage API key not configured');
+                }
+
+                console.log(`Trying Alpha Vantage for: ${symbol}.NS`);
+                const response = await fetch(
+                    `${API_ENDPOINTS.alphavantage}?function=GLOBAL_QUOTE&symbol=${symbol}.NS&apikey=${ALPHA_VANTAGE_KEY}`
+                );
+                
+                if (!response.ok) throw new Error(`Alpha Vantage API failed: ${response.status}`);
+                
+                const data = await response.json();
+                
+                // Check for API limit message
+                if (data['Note'] && data['Note'].includes('API call frequency')) {
+                    throw new Error('Alpha Vantage API rate limit exceeded');
+                }
+                
+                const quote = data['Global Quote'];
+                
+                // Check if we got valid data
+                if (!quote || !quote['01. symbol']) {
+                    throw new Error('Invalid data from Alpha Vantage - stock symbol may not exist');
+                }
+                
+                return {
+                    symbol: quote['01. symbol'].replace('.NS', '').replace('.BO', ''),
+                    price: parseFloat(quote['05. price']),
+                    change: parseFloat(quote['09. change']),
+                    changePercent: parseFloat(quote['10. change percent'].replace('%', '')),
+                    high: parseFloat(quote['03. high']),
+                    low: parseFloat(quote['04. low']),
+                    open: parseFloat(quote['02. open']),
+                    volume: parseInt(quote['06. volume']),
+                    marketCap: null, // Not provided by this endpoint
+                    currency: 'INR',
+                    source: 'Alpha Vantage'
+                };
+            } catch (error) {
+                console.error('Alpha Vantage API error:', error);
+                return null;
+            }
+        }
+
+        // Try alternative APIs
+        async function tryAlternativeAPIs(symbol) {
+            try {
+                // First try Alpha Vantage if API key is configured
+                if (ALPHA_VANTAGE_KEY !== 'YOUR_API_KEY_HERE') {
+                    const alphaData = await fetchFromAlphaVantage(symbol);
+                    if (alphaData) {
+                        displayStockData(alphaData);
+                        showMessage('📊 Data from Alpha Vantage API', 'success');
+                        return;
+                    }
+                }
+
+                // If Alpha Vantage fails or not configured, create demo data
+                const demoData = createDemoData(symbol);
+                displayStockData(demoData);
+                
+                if (ALPHA_VANTAGE_KEY === 'YOUR_API_KEY_HERE') {
+                    showMessage('📊 Demo data displayed. Add your Alpha Vantage API key for real data!', 'info');
+                } else {
+                    showMessage('📊 Demo data displayed. APIs may be temporarily unavailable.', 'info');
+                }
+            } catch (error) {
+                showError('All APIs failed. Please try again later or check your internet connection.');
+            }
+        }
+
+        // Create demo data for demonstration
+        function createDemoData(symbol) {
+            const basePrice = Math.random() * 2000 + 100;
+            const change = (Math.random() - 0.5) * 50;
+            
+            return {
+                symbol: symbol,
+                price: Math.round(basePrice * 100) / 100,
+                change: Math.round(change * 100) / 100,
+                changePercent: Math.round((change / basePrice) * 100 * 100) / 100,
+                high: Math.round((basePrice + Math.random() * 30) * 100) / 100,
+                low: Math.round((basePrice - Math.random() * 30) * 100) / 100,
+                open: Math.round((basePrice + (Math.random() - 0.5) * 20) * 100) / 100,
+                volume: Math.floor(Math.random() * 10000000),
+                marketCap: Math.floor(basePrice * 10000000),
+                currency: 'INR',
+                source: 'Demo Data'
+            };
+        }
+
+        // Display stock data
+        function displayStockData(data) {
+            const isPositive = data.change >= 0;
+            const priceClass = isPositive ? 'price-positive' : 'price-negative';
+            const changeSymbol = isPositive ? '+' : '';
+            const arrow = isPositive ? '📈' : '📉';
+            
+            const html = `
+                <div class="stock-card">
+                    <div class="stock-header">
+                        <div class="stock-symbol">${data.symbol}</div>
+                        <div style="font-size: 0.9rem; color: #666;">
+                            ${new Date().toLocaleString('en-IN', { 
+                                timeZone: 'Asia/Kolkata',
+                                day: '2-digit',
+                                month: 'short',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })} IST
+                        </div>
+                    </div>
+                    
+                    <div class="stock-price ${priceClass}">
+                        ₹${data.price.toFixed(2)}
+                    </div>
+                    
+                    <div class="stock-change ${priceClass}">
+                        ${arrow} ${changeSymbol}₹${Math.abs(data.change).toFixed(2)} (${changeSymbol}${data.changePercent.toFixed(2)}%)
+                    </div>
+                    
+                    <div class="stock-details">
+                        <div class="detail-item">
+                            <span><strong>Open:</strong></span>
+                            <span>₹${data.open.toFixed(2)}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span><strong>High:</strong></span>
+                            <span>₹${data.high.toFixed(2)}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span><strong>Low:</strong></span>
+                            <span>₹${data.low.toFixed(2)}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span><strong>Volume:</strong></span>
+                            <span>${data.volume.toLocaleString('en-IN')}</span>
+                        </div>
+                        ${data.marketCap ? `
+                        <div class="detail-item">
+                            <span><strong>Market Cap:</strong></span>
+                            <span>₹${(data.marketCap / 10000000).toFixed(2)}Cr</span>
+                        </div>
+                        ` : ''}
+                        <div class="detail-item">
+                            <span><strong>Source:</strong></span>
+                            <span>${data.source}</span>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 15px; text-align: center;">
+                        <button class="btn" onclick="getStockData('${data.symbol}')" style="font-size: 14px; padding: 8px 16px;">
+                            🔄 Refresh Data
+                        </button>
+                    </div>
+                </div>
             `;
-            tbody.appendChild(row);
-          });
-        } else {
-          tbody.innerHTML = '<tr><td colspan="3">No data available</td></tr>';
+            
+            document.getElementById('results').innerHTML = html;
         }
-      } catch (error) {
-        console.error('Failed to update top gainers:', error);
-      }
-    }
 
-    // Update Market Indices Section
-    async function updateMarketIndices() {
-      try {
-        const response = await fetch(`${baseURL}/api/indices`);
-        const indices = await response.json();
-        const container = document.querySelector('.index-grid');
-        container.innerHTML = '';
+        // Show error message
+        function showError(message) {
+            document.getElementById('results').innerHTML = `
+                <div class="error">
+                    ⚠️ ${message}
+                </div>
+            `;
+        }
 
-        indices.forEach(index => {
-          const div = document.createElement('div');
-          div.className = 'index-item';
-          const changeClass = index.change >= 0 ? 'positive' : 'negative';
-          div.innerHTML = `
-            <div class="index-name">${index.name}</div>
-            <div class="index-value">${index.value.toFixed(2)}</div>
-            <div class="index-change ${changeClass}">${index.change.toFixed(2)}%</div>
-          `;
-          container.appendChild(div);
+        // Show info message
+        function showMessage(message, type = 'info') {
+            const className = type === 'error' ? 'error' : (type === 'success' ? 'success' : 'info');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = className;
+            messageDiv.innerHTML = message;
+            
+            // Add message above results
+            const resultsDiv = document.getElementById('results');
+            if (resultsDiv.firstChild) {
+                resultsDiv.insertBefore(messageDiv, resultsDiv.firstChild);
+            } else {
+                resultsDiv.appendChild(messageDiv);
+            }
+            
+            // Auto-remove message after 5 seconds
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messageDiv.parentNode.removeChild(messageDiv);
+                }
+            }, 5000);
+        }
+
+        // Enter key support
+        document.getElementById('stockInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchStock();
+            }
         });
-      } catch (error) {
-        console.error('Failed to update market indices:', error);
-      }
-    }
 
-    // Update Market News Section
-    async function updateMarketNews() {
-      try {
-        const response = await fetch(`${baseURL}/api/news`);
-        const newsItems = await response.json();
-        const container = document.getElementById('market-news');
-        if(!container){
-          console.warn("market-news element not found to update news")
-          return;
-        }
-        container.innerHTML = '';
+        // Initialize app
+        function initializeApp() {
+            console.log('🚀 Indian Stock Analytics Pro - Initializing...');
+            
+            // Check API configuration
+            checkAPIStatus();
+            
+            // Update market status
+            updateMarketStatus();
+            setInterval(updateMarketStatus, 60000); // Update every minute
 
-        if (newsItems.length === 0) {
-          container.innerHTML = '<p>No news available</p>';
-          return;
+            // Load default stock after a short delay
+            setTimeout(() => {
+                console.log('📊 Loading default stock: RELIANCE');
+                getStockData('RELIANCE');
+            }, 1500);
         }
 
-        newsItems.forEach(item => {
-          const div = document.createElement('div');
-          div.innerHTML = `<a href="${item.url}" target="_blank">${item.headline}</a>`;
-          container.appendChild(div);
-        });
-      } catch (error) {
-        console.error('Failed to update market news:', error);
-      }
-    }
+        // Start the app when page loads
+        window.addEventListener('load', initializeApp);
 
-    // Update Health Status (Optional)
-    async function updateHealthStatus() {
-      try {
-        const response = await fetch(`${baseURL}/health`);
-        const data = await response.json();
-        console.log('API health:', data);
-      } catch (error) {
-        console.error('Failed to get health status:', error);
-      }
-    }
-
-    // Initialize all data on page load
-    document.addEventListener('DOMContentLoaded', () => {
-      updateTopGainers();
-      updateMarketIndices();
-      updateMarketNews();
-      updateHealthStatus();
-
-      // Refresh data every minute
-      setInterval(() => {
-        updateTopGainers();
-        updateMarketIndices();
-        updateMarketNews();
-        updateHealthStatus();
-      }, 60000);
-    });
-
-    // Optional click handler for stock symbol details
-    document.addEventListener('click', (e) => {
-      if (e.target.classList.contains('stock-symbol')) {
-        const symbol = e.target.textContent;
-        alert(`Open detailed analysis for ${symbol}. Feature to be developed.`);
-      }
-    });
-
-    // Your existing screener functions and static data (optional)
-    const stockData = {
-      bullish: [
-        {symbol: 'INFY', price: '₹1,675.40', signal: 'Strong Buy'},
-        {symbol: 'WIPRO', price: '₹587.25', signal: 'Buy'},
-        {symbol: 'HCLTECH', price: '₹1,289.30', signal: 'Buy'}
-      ],
-      bearish: [
-        {symbol: 'PAYTM', price: '₹425.60', signal: 'Sell'},
-        {symbol: 'ZOMATO', price: '₹187.45', signal: 'Weak Sell'},
-        {symbol: 'NYKAA', price: '₹234.80', signal: 'Sell'}
-      ],
-      value: [
-        {symbol: 'ITC', price: '₹487.25', signal: 'Value Buy'},
-        {symbol: 'SBIN', price: '₹785.40', signal: 'Undervalued'},
-        {symbol: 'COALINDIA', price: '₹423.65', signal: 'Value Pick'}
-      ],
-      growth: [
-        {symbol: 'ASIANPAINT', price: '₹3,256.80', signal: 'Growth'},
-        {symbol: 'NESTLEIND', price: '₹2,487.90', signal: 'High Growth'},
-        {symbol: 'DMART', price: '₹4,125.30', signal: 'Growth Leader'}
-      ]
-    };
-    function updateScreenerTable(data) {
-      const tbody = document.getElementById('screener-table');
-      tbody.innerHTML = '';
-
-      data.forEach(stock => {
-        const row = tbody.insertRow();
-        row.innerHTML = `
-          <td class="stock-symbol">${stock.symbol}</td>
-          <td>${stock.price}</td>
-          <td class="positive">${stock.signal}</td>
-        `;
-      });
-    }
-    function loadBullishStocks() {
-      updateScreenerTable(stockData.bullish);
-    }
-    function loadBearishStocks() {
-      updateScreenerTable(stockData.bearish);
-    }
-    function loadValueStocks() {
-      updateScreenerTable(stockData.value);
-    }
-    function loadGrowthStocks() {
-      updateScreenerTable(stockData.growth);
-    }
-    function showMovingAverage() {
-      alert('Moving Average analysis would be integrated with charting library (TradingView, Chart.js, etc.)');
-    }
-    function showCandlestick() {
-      alert('Candlestick pattern recognition would be integrated with technical analysis APIs');
-    }
-    function showRSI() {
-      alert('RSI analysis would show overbought/oversold conditions');
-    }
-  </script>
+        // Add some helpful console messages for debugging
+        console.log('🇮🇳 Indian Stock Analytics Pro - Ready!');
+        console.log('💡 To add Alpha Vantage API key, replace YOUR_API_KEY_HERE in the code');
+        console.log('🔧 Open Developer Tools to see API calls and errors');
+    </script>
 </body>
-<link rel="stylesheet" href="styles.css" />
-<script src="script.js"></script>
-
 </html>

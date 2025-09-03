@@ -194,6 +194,14 @@
             margin: 10px 0;
         }
 
+        .info {
+            background: #e6f3ff;
+            color: #0066cc;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+
         .market-status {
             background: white;
             border-radius: 15px;
@@ -211,6 +219,24 @@
         .status-closed {
             color: #ef4444;
             font-weight: bold;
+        }
+
+        .api-status {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .api-configured {
+            color: #22c55e;
+        }
+
+        .api-not-configured {
+            color: #f59e0b;
         }
 
         @media (max-width: 768px) {
@@ -231,6 +257,10 @@
             <p>Real-time NSE & BSE Market Analysis</p>
         </div>
 
+        <div class="api-status" id="apiStatus">
+            <div id="apiStatusText">Checking API configuration...</div>
+        </div>
+
         <div class="market-status" id="marketStatus">
             <div id="marketStatusText">Loading market status...</div>
         </div>
@@ -247,6 +277,8 @@
                 <div class="stock-chip" onclick="searchStockSymbol('HDFCBANK')">HDFCBANK</div>
                 <div class="stock-chip" onclick="searchStockSymbol('ITC')">ITC</div>
                 <div class="stock-chip" onclick="searchStockSymbol('SBIN')">SBIN</div>
+                <div class="stock-chip" onclick="searchStockSymbol('BHARTIARTL')">BHARTIARTL</div>
+                <div class="stock-chip" onclick="searchStockSymbol('ICICIBANK')">ICICIBANK</div>
             </div>
         </div>
 
@@ -261,6 +293,10 @@
             alphavantage: 'https://www.alphavantage.co/query'
         };
 
+        // Alpha Vantage API Key - REPLACE WITH YOUR ACTUAL KEY
+        // Get free key from: https://www.alphavantage.co/support/#api-key
+        const ALPHA_VANTAGE_KEY = 'DW5XSCAW4N1TW0ZD';
+
         // Popular Indian stock symbols with Yahoo Finance suffixes
         const INDIAN_STOCKS = {
             'RELIANCE': 'RELIANCE.NS',
@@ -272,8 +308,24 @@
             'BHARTIARTL': 'BHARTIARTL.NS',
             'ICICIBANK': 'ICICIBANK.NS',
             'HINDUNILVR': 'HINDUNILVR.NS',
-            'LT': 'LT.NS'
+            'LT': 'LT.NS',
+            'WIPRO': 'WIPRO.NS',
+            'MARUTI': 'MARUTI.NS',
+            'ASIANPAINT': 'ASIANPAINT.NS',
+            'TECHM': 'TECHM.NS',
+            'TITAN': 'TITAN.NS'
         };
+
+        // Check API configuration status
+        function checkAPIStatus() {
+            const statusDiv = document.getElementById('apiStatusText');
+            
+            if (ALPHA_VANTAGE_KEY === 'YOUR_API_KEY_HERE') {
+                statusDiv.innerHTML = '<span class="api-not-configured">⚠️ Alpha Vantage API key not configured - Using Yahoo Finance + Demo data</span>';
+            } else {
+                statusDiv.innerHTML = '<span class="api-configured">✅ Alpha Vantage API configured - Multiple data sources available</span>';
+            }
+        }
 
         // Market status checker
         function updateMarketStatus() {
@@ -291,9 +343,9 @@
                               day >= 1 && day <= 5;
             
             if (marketOpen) {
-                statusDiv.innerHTML = '<span class="status-open">🟢 Market Open</span>';
+                statusDiv.innerHTML = '<span class="status-open">🟢 NSE/BSE Market Open</span> • Live trading session';
             } else {
-                statusDiv.innerHTML = '<span class="status-closed">🔴 Market Closed</span>';
+                statusDiv.innerHTML = '<span class="status-closed">🔴 NSE/BSE Market Closed</span> • Next session starts 9:15 AM IST';
             }
         }
 
@@ -316,22 +368,24 @@
         // Main function to get stock data
         async function getStockData(symbol) {
             const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = '<div class="loading">🔄 Loading stock data...</div>';
+            resultsDiv.innerHTML = '<div class="loading">🔄 Fetching stock data from multiple sources...</div>';
 
             try {
                 // Try Yahoo Finance first (most reliable for Indian stocks)
                 const yahooSymbol = INDIAN_STOCKS[symbol] || `${symbol}.NS`;
+                console.log(`Trying Yahoo Finance for: ${yahooSymbol}`);
                 const stockData = await fetchFromYahoo(yahooSymbol);
                 
                 if (stockData) {
                     displayStockData(stockData);
+                    showMessage('📊 Data from Yahoo Finance', 'success');
                 } else {
-                    // Fallback to alternative method
+                    // Fallback to alternative APIs
                     await tryAlternativeAPIs(symbol);
                 }
             } catch (error) {
                 console.error('Error fetching stock data:', error);
-                showError('Failed to fetch stock data. Please try again.');
+                await tryAlternativeAPIs(symbol);
             }
         }
 
@@ -344,24 +398,30 @@
                     }
                 });
                 
-                if (!response.ok) throw new Error('Yahoo API failed');
+                if (!response.ok) throw new Error(`Yahoo API failed: ${response.status}`);
                 
                 const data = await response.json();
+                
+                if (!data.chart || !data.chart.result || data.chart.result.length === 0) {
+                    throw new Error('Invalid data structure from Yahoo Finance');
+                }
+                
                 const result = data.chart.result[0];
                 const meta = result.meta;
                 const quote = result.indicators.quote[0];
                 
                 return {
                     symbol: meta.symbol.replace('.NS', '').replace('.BO', ''),
-                    price: meta.regularMarketPrice,
-                    change: meta.regularMarketPrice - meta.previousClose,
-                    changePercent: ((meta.regularMarketPrice - meta.previousClose) / meta.previousClose) * 100,
-                    high: meta.regularMarketDayHigh,
-                    low: meta.regularMarketDayLow,
-                    open: quote.open[quote.open.length - 1],
-                    volume: quote.volume[quote.volume.length - 1],
-                    marketCap: meta.marketCap,
-                    currency: meta.currency
+                    price: meta.regularMarketPrice || meta.previousClose,
+                    change: (meta.regularMarketPrice || meta.previousClose) - meta.previousClose,
+                    changePercent: (((meta.regularMarketPrice || meta.previousClose) - meta.previousClose) / meta.previousClose) * 100,
+                    high: meta.regularMarketDayHigh || meta.previousClose,
+                    low: meta.regularMarketDayLow || meta.previousClose,
+                    open: (quote.open && quote.open[quote.open.length - 1]) || meta.previousClose,
+                    volume: (quote.volume && quote.volume[quote.volume.length - 1]) || 0,
+                    marketCap: meta.marketCap || null,
+                    currency: meta.currency || 'INR',
+                    source: 'Yahoo Finance'
                 };
             } catch (error) {
                 console.error('Yahoo Finance API error:', error);
@@ -369,34 +429,98 @@
             }
         }
 
+        // Fetch from Alpha Vantage API
+        async function fetchFromAlphaVantage(symbol) {
+            try {
+                // Don't try Alpha Vantage if no API key is set
+                if (ALPHA_VANTAGE_KEY === 'YOUR_API_KEY_HERE') {
+                    throw new Error('Alpha Vantage API key not configured');
+                }
+
+                console.log(`Trying Alpha Vantage for: ${symbol}.NS`);
+                const response = await fetch(
+                    `${API_ENDPOINTS.alphavantage}?function=GLOBAL_QUOTE&symbol=${symbol}.NS&apikey=${ALPHA_VANTAGE_KEY}`
+                );
+                
+                if (!response.ok) throw new Error(`Alpha Vantage API failed: ${response.status}`);
+                
+                const data = await response.json();
+                
+                // Check for API limit message
+                if (data['Note'] && data['Note'].includes('API call frequency')) {
+                    throw new Error('Alpha Vantage API rate limit exceeded');
+                }
+                
+                const quote = data['Global Quote'];
+                
+                // Check if we got valid data
+                if (!quote || !quote['01. symbol']) {
+                    throw new Error('Invalid data from Alpha Vantage - stock symbol may not exist');
+                }
+                
+                return {
+                    symbol: quote['01. symbol'].replace('.NS', '').replace('.BO', ''),
+                    price: parseFloat(quote['05. price']),
+                    change: parseFloat(quote['09. change']),
+                    changePercent: parseFloat(quote['10. change percent'].replace('%', '')),
+                    high: parseFloat(quote['03. high']),
+                    low: parseFloat(quote['04. low']),
+                    open: parseFloat(quote['02. open']),
+                    volume: parseInt(quote['06. volume']),
+                    marketCap: null, // Not provided by this endpoint
+                    currency: 'INR',
+                    source: 'Alpha Vantage'
+                };
+            } catch (error) {
+                console.error('Alpha Vantage API error:', error);
+                return null;
+            }
+        }
+
         // Try alternative APIs
         async function tryAlternativeAPIs(symbol) {
             try {
-                // Create demo data if APIs fail
+                // First try Alpha Vantage if API key is configured
+                if (ALPHA_VANTAGE_KEY !== 'YOUR_API_KEY_HERE') {
+                    const alphaData = await fetchFromAlphaVantage(symbol);
+                    if (alphaData) {
+                        displayStockData(alphaData);
+                        showMessage('📊 Data from Alpha Vantage API', 'success');
+                        return;
+                    }
+                }
+
+                // If Alpha Vantage fails or not configured, create demo data
                 const demoData = createDemoData(symbol);
                 displayStockData(demoData);
-                showMessage('📊 Showing demo data. For live data, please check API configurations.', 'info');
+                
+                if (ALPHA_VANTAGE_KEY === 'YOUR_API_KEY_HERE') {
+                    showMessage('📊 Demo data displayed. Add your Alpha Vantage API key for real data!', 'info');
+                } else {
+                    showMessage('📊 Demo data displayed. APIs may be temporarily unavailable.', 'info');
+                }
             } catch (error) {
-                showError('All APIs failed. Please try again later.');
+                showError('All APIs failed. Please try again later or check your internet connection.');
             }
         }
 
         // Create demo data for demonstration
         function createDemoData(symbol) {
-            const basePrice = Math.random() * 1000 + 100;
-            const change = (Math.random() - 0.5) * 20;
+            const basePrice = Math.random() * 2000 + 100;
+            const change = (Math.random() - 0.5) * 50;
             
             return {
                 symbol: symbol,
-                price: basePrice,
-                change: change,
-                changePercent: (change / basePrice) * 100,
-                high: basePrice + Math.random() * 20,
-                low: basePrice - Math.random() * 20,
-                open: basePrice + (Math.random() - 0.5) * 10,
-                volume: Math.floor(Math.random() * 1000000),
-                marketCap: Math.floor(basePrice * 1000000),
-                currency: 'INR'
+                price: Math.round(basePrice * 100) / 100,
+                change: Math.round(change * 100) / 100,
+                changePercent: Math.round((change / basePrice) * 100 * 100) / 100,
+                high: Math.round((basePrice + Math.random() * 30) * 100) / 100,
+                low: Math.round((basePrice - Math.random() * 30) * 100) / 100,
+                open: Math.round((basePrice + (Math.random() - 0.5) * 20) * 100) / 100,
+                volume: Math.floor(Math.random() * 10000000),
+                marketCap: Math.floor(basePrice * 10000000),
+                currency: 'INR',
+                source: 'Demo Data'
             };
         }
 
@@ -405,13 +529,20 @@
             const isPositive = data.change >= 0;
             const priceClass = isPositive ? 'price-positive' : 'price-negative';
             const changeSymbol = isPositive ? '+' : '';
+            const arrow = isPositive ? '📈' : '📉';
             
             const html = `
                 <div class="stock-card">
                     <div class="stock-header">
                         <div class="stock-symbol">${data.symbol}</div>
                         <div style="font-size: 0.9rem; color: #666;">
-                            ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST
+                            ${new Date().toLocaleString('en-IN', { 
+                                timeZone: 'Asia/Kolkata',
+                                day: '2-digit',
+                                month: 'short',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })} IST
                         </div>
                     </div>
                     
@@ -420,34 +551,42 @@
                     </div>
                     
                     <div class="stock-change ${priceClass}">
-                        ${changeSymbol}₹${data.change.toFixed(2)} (${changeSymbol}${data.changePercent.toFixed(2)}%)
+                        ${arrow} ${changeSymbol}₹${Math.abs(data.change).toFixed(2)} (${changeSymbol}${data.changePercent.toFixed(2)}%)
                     </div>
                     
                     <div class="stock-details">
                         <div class="detail-item">
-                            <span>Open:</span>
+                            <span><strong>Open:</strong></span>
                             <span>₹${data.open.toFixed(2)}</span>
                         </div>
                         <div class="detail-item">
-                            <span>High:</span>
+                            <span><strong>High:</strong></span>
                             <span>₹${data.high.toFixed(2)}</span>
                         </div>
                         <div class="detail-item">
-                            <span>Low:</span>
+                            <span><strong>Low:</strong></span>
                             <span>₹${data.low.toFixed(2)}</span>
                         </div>
                         <div class="detail-item">
-                            <span>Volume:</span>
+                            <span><strong>Volume:</strong></span>
                             <span>${data.volume.toLocaleString('en-IN')}</span>
                         </div>
+                        ${data.marketCap ? `
                         <div class="detail-item">
-                            <span>Market Cap:</span>
+                            <span><strong>Market Cap:</strong></span>
                             <span>₹${(data.marketCap / 10000000).toFixed(2)}Cr</span>
                         </div>
+                        ` : ''}
                         <div class="detail-item">
-                            <span>Currency:</span>
-                            <span>${data.currency}</span>
+                            <span><strong>Source:</strong></span>
+                            <span>${data.source}</span>
                         </div>
+                    </div>
+                    
+                    <div style="margin-top: 15px; text-align: center;">
+                        <button class="btn" onclick="getStockData('${data.symbol}')" style="font-size: 14px; padding: 8px 16px;">
+                            🔄 Refresh Data
+                        </button>
                     </div>
                 </div>
             `;
@@ -466,13 +605,25 @@
 
         // Show info message
         function showMessage(message, type = 'info') {
-            const className = type === 'error' ? 'error' : 'success';
+            const className = type === 'error' ? 'error' : (type === 'success' ? 'success' : 'info');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = className;
+            messageDiv.innerHTML = message;
+            
+            // Add message above results
             const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML += `
-                <div class="${className}">
-                    ${message}
-                </div>
-            `;
+            if (resultsDiv.firstChild) {
+                resultsDiv.insertBefore(messageDiv, resultsDiv.firstChild);
+            } else {
+                resultsDiv.appendChild(messageDiv);
+            }
+            
+            // Auto-remove message after 5 seconds
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messageDiv.parentNode.removeChild(messageDiv);
+                }
+            }, 5000);
         }
 
         // Enter key support
@@ -482,16 +633,31 @@
             }
         });
 
-        // Initialize
-        updateMarketStatus();
-        setInterval(updateMarketStatus, 60000); // Update market status every minute
+        // Initialize app
+        function initializeApp() {
+            console.log('🚀 Indian Stock Analytics Pro - Initializing...');
+            
+            // Check API configuration
+            checkAPIStatus();
+            
+            // Update market status
+            updateMarketStatus();
+            setInterval(updateMarketStatus, 60000); // Update every minute
 
-        // Load default stock on page load
-        window.addEventListener('load', function() {
+            // Load default stock after a short delay
             setTimeout(() => {
+                console.log('📊 Loading default stock: RELIANCE');
                 getStockData('RELIANCE');
-            }, 1000);
-        });
+            }, 1500);
+        }
+
+        // Start the app when page loads
+        window.addEventListener('load', initializeApp);
+
+        // Add some helpful console messages for debugging
+        console.log('🇮🇳 Indian Stock Analytics Pro - Ready!');
+        console.log('💡 To add Alpha Vantage API key, replace YOUR_API_KEY_HERE in the code');
+        console.log('🔧 Open Developer Tools to see API calls and errors');
     </script>
 </body>
 </html>

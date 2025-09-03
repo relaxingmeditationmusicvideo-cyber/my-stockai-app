@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🇮🇳 Indian Stock Analytics Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .search-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        #stockInput {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        #stockInput:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .popular-stocks {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .stock-chip {
+            background: #f0f0f0;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .stock-chip:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .results-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .stock-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .stock-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+
+        .stock-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .stock-symbol {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .stock-price {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .price-positive {
+            color: #22c55e;
+        }
+
+        .price-negative {
+            color: #ef4444;
+        }
+
+        .stock-change {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .stock-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .error {
+            background: #fee;
+            color: #d00;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+
+        .success {
+            background: #efe;
+            color: #060;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+
+        .market-status {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .status-open {
+            color: #22c55e;
+            font-weight: bold;
+        }
+
+        .status-closed {
+            color: #ef4444;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .search-container {
+                flex-direction: column;
+            }
+            
+            .popular-stocks {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🇮🇳 Indian Stock Analytics Pro</h1>
+            <p>Real-time NSE & BSE Market Analysis</p>
+        </div>
+
+        <div class="market-status" id="marketStatus">
+            <div id="marketStatusText">Loading market status...</div>
+        </div>
+
+        <div class="search-section">
+            <div class="search-container">
+                <input type="text" id="stockInput" placeholder="Enter stock symbol (e.g., RELIANCE, TCS, INFY)" />
+                <button class="btn" onclick="searchStock()">📈 Get Quote</button>
+            </div>
+            <div class="popular-stocks">
+                <div class="stock-chip" onclick="searchStockSymbol('RELIANCE')">RELIANCE</div>
+                <div class="stock-chip" onclick="searchStockSymbol('TCS')">TCS</div>
+                <div class="stock-chip" onclick="searchStockSymbol('INFY')">INFY</div>
+                <div class="stock-chip" onclick="searchStockSymbol('HDFCBANK')">HDFCBANK</div>
+                <div class="stock-chip" onclick="searchStockSymbol('ITC')">ITC</div>
+                <div class="stock-chip" onclick="searchStockSymbol('SBIN')">SBIN</div>
+            </div>
+        </div>
+
+        <div id="results" class="results-section"></div>
+    </div>
+
+    <script>
+        // Multiple API endpoints for redundancy
+        const API_ENDPOINTS = {
+            yahoo: 'https://query1.finance.yahoo.com/v8/finance/chart/',
+            nse: 'https://www.nseindia.com/api/quote-equity?symbol=',
+            alphavantage: 'https://www.alphavantage.co/query'
+        };
+
+        // Popular Indian stock symbols with Yahoo Finance suffixes
+        const INDIAN_STOCKS = {
+            'RELIANCE': 'RELIANCE.NS',
+            'TCS': 'TCS.NS',
+            'INFY': 'INFY.NS',
+            'HDFCBANK': 'HDFCBANK.NS',
+            'ITC': 'ITC.NS',
+            'SBIN': 'SBIN.NS',
+            'BHARTIARTL': 'BHARTIARTL.NS',
+            'ICICIBANK': 'ICICIBANK.NS',
+            'HINDUNILVR': 'HINDUNILVR.NS',
+            'LT': 'LT.NS'
+        };
+
+        // Market status checker
+        function updateMarketStatus() {
+            const now = new Date();
+            const istTime = new Date(now.getTime() + (5.5 * 60 * 60 * 1000)); // IST offset
+            const hours = istTime.getUTCHours();
+            const minutes = istTime.getUTCMinutes();
+            const day = istTime.getUTCDay();
+            
+            const statusDiv = document.getElementById('marketStatusText');
+            
+            // Market hours: 9:15 AM to 3:30 PM IST, Monday to Friday
+            const marketOpen = (hours > 9 || (hours === 9 && minutes >= 15)) && 
+                              (hours < 15 || (hours === 15 && minutes <= 30)) && 
+                              day >= 1 && day <= 5;
+            
+            if (marketOpen) {
+                statusDiv.innerHTML = '<span class="status-open">🟢 Market Open</span>';
+            } else {
+                statusDiv.innerHTML = '<span class="status-closed">🔴 Market Closed</span>';
+            }
+        }
+
+        // Search stock function
+        async function searchStock() {
+            const symbol = document.getElementById('stockInput').value.trim().toUpperCase();
+            if (!symbol) {
+                showError('Please enter a stock symbol');
+                return;
+            }
+            await getStockData(symbol);
+        }
+
+        // Search stock by symbol (for chips)
+        function searchStockSymbol(symbol) {
+            document.getElementById('stockInput').value = symbol;
+            getStockData(symbol);
+        }
+
+        // Main function to get stock data
+        async function getStockData(symbol) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="loading">🔄 Loading stock data...</div>';
+
+            try {
+                // Try Yahoo Finance first (most reliable for Indian stocks)
+                const yahooSymbol = INDIAN_STOCKS[symbol] || `${symbol}.NS`;
+                const stockData = await fetchFromYahoo(yahooSymbol);
+                
+                if (stockData) {
+                    displayStockData(stockData);
+                } else {
+                    // Fallback to alternative method
+                    await tryAlternativeAPIs(symbol);
+                }
+            } catch (error) {
+                console.error('Error fetching stock data:', error);
+                showError('Failed to fetch stock data. Please try again.');
+            }
+        }
+
+        // Fetch from Yahoo Finance
+        async function fetchFromYahoo(symbol) {
+            try {
+                const response = await fetch(`${API_ENDPOINTS.yahoo}${symbol}`, {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Yahoo API failed');
+                
+                const data = await response.json();
+                const result = data.chart.result[0];
+                const meta = result.meta;
+                const quote = result.indicators.quote[0];
+                
+                return {
+                    symbol: meta.symbol.replace('.NS', '').replace('.BO', ''),
+                    price: meta.regularMarketPrice,
+                    change: meta.regularMarketPrice - meta.previousClose,
+                    changePercent: ((meta.regularMarketPrice - meta.previousClose) / meta.previousClose) * 100,
+                    high: meta.regularMarketDayHigh,
+                    low: meta.regularMarketDayLow,
+                    open: quote.open[quote.open.length - 1],
+                    volume: quote.volume[quote.volume.length - 1],
+                    marketCap: meta.marketCap,
+                    currency: meta.currency
+                };
+            } catch (error) {
+                console.error('Yahoo Finance API error:', error);
+                return null;
+            }
+        }
+
+        // Try alternative APIs
+        async function tryAlternativeAPIs(symbol) {
+            try {
+                // Create demo data if APIs fail
+                const demoData = createDemoData(symbol);
+                displayStockData(demoData);
+                showMessage('📊 Showing demo data. For live data, please check API configurations.', 'info');
+            } catch (error) {
+                showError('All APIs failed. Please try again later.');
+            }
+        }
+
+        // Create demo data for demonstration
+        function createDemoData(symbol) {
+            const basePrice = Math.random() * 1000 + 100;
+            const change = (Math.random() - 0.5) * 20;
+            
+            return {
+                symbol: symbol,
+                price: basePrice,
+                change: change,
+                changePercent: (change / basePrice) * 100,
+                high: basePrice + Math.random() * 20,
+                low: basePrice - Math.random() * 20,
+                open: basePrice + (Math.random() - 0.5) * 10,
+                volume: Math.floor(Math.random() * 1000000),
+                marketCap: Math.floor(basePrice * 1000000),
+                currency: 'INR'
+            };
+        }
+
+        // Display stock data
+        function displayStockData(data) {
+            const isPositive = data.change >= 0;
+            const priceClass = isPositive ? 'price-positive' : 'price-negative';
+            const changeSymbol = isPositive ? '+' : '';
+            
+            const html = `
+                <div class="stock-card">
+                    <div class="stock-header">
+                        <div class="stock-symbol">${data.symbol}</div>
+                        <div style="font-size: 0.9rem; color: #666;">
+                            ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST
+                        </div>
+                    </div>
+                    
+                    <div class="stock-price ${priceClass}">
+                        ₹${data.price.toFixed(2)}
+                    </div>
+                    
+                    <div class="stock-change ${priceClass}">
+                        ${changeSymbol}₹${data.change.toFixed(2)} (${changeSymbol}${data.changePercent.toFixed(2)}%)
+                    </div>
+                    
+                    <div class="stock-details">
+                        <div class="detail-item">
+                            <span>Open:</span>
+                            <span>₹${data.open.toFixed(2)}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span>High:</span>
+                            <span>₹${data.high.toFixed(2)}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span>Low:</span>
+                            <span>₹${data.low.toFixed(2)}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span>Volume:</span>
+                            <span>${data.volume.toLocaleString('en-IN')}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span>Market Cap:</span>
+                            <span>₹${(data.marketCap / 10000000).toFixed(2)}Cr</span>
+                        </div>
+                        <div class="detail-item">
+                            <span>Currency:</span>
+                            <span>${data.currency}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('results').innerHTML = html;
+        }
+
+        // Show error message
+        function showError(message) {
+            document.getElementById('results').innerHTML = `
+                <div class="error">
+                    ⚠️ ${message}
+                </div>
+            `;
+        }
+
+        // Show info message
+        function showMessage(message, type = 'info') {
+            const className = type === 'error' ? 'error' : 'success';
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML += `
+                <div class="${className}">
+                    ${message}
+                </div>
+            `;
+        }
+
+        // Enter key support
+        document.getElementById('stockInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchStock();
+            }
+        });
+
+        // Initialize
+        updateMarketStatus();
+        setInterval(updateMarketStatus, 60000); // Update market status every minute
+
+        // Load default stock on page load
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                getStockData('RELIANCE');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

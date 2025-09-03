@@ -295,7 +295,7 @@
 
         // Alpha Vantage API Key - REPLACE WITH YOUR ACTUAL KEY
         // Get free key from: https://www.alphavantage.co/support/#api-key
-        const ALPHA_VANTAGE_KEY = 'DW5XSCAW4N1TW0ZD';
+        const ALPHA_VANTAGE_KEY = 'AT1KNWDF3VB5IQ89';
 
         // Popular Indian stock symbols with Yahoo Finance suffixes
         const INDIAN_STOCKS = {
@@ -481,7 +481,7 @@
         async function tryAlternativeAPIs(symbol) {
             try {
                 // First try Alpha Vantage if API key is configured
-                if (ALPHA_VANTAGE_KEY !== 'DW5XSCAW4N1TW0ZD') {
+                if (ALPHA_VANTAGE_KEY !== 'YOUR_API_KEY_HERE') {
                     const alphaData = await fetchFromAlphaVantage(symbol);
                     if (alphaData) {
                         displayStockData(alphaData);
@@ -494,7 +494,7 @@
                 const demoData = createDemoData(symbol);
                 displayStockData(demoData);
                 
-                if (ALPHA_VANTAGE_KEY === 'DW5XSCAW4N1TW0ZD') {
+                if (ALPHA_VANTAGE_KEY === 'YOUR_API_KEY_HERE') {
                     showMessage('📊 Demo data displayed. Add your Alpha Vantage API key for real data!', 'info');
                 } else {
                     showMessage('📊 Demo data displayed. APIs may be temporarily unavailable.', 'info');

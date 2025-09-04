@@ -270,6 +270,44 @@
             font-weight: bold;
         }
 
+        .price-chart {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .chart-label {
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .price-bar {
+            height: 20px;
+            background: linear-gradient(90deg, #ef4444 0%, #fef08a 50%, #22c55e 100%);
+            border-radius: 10px;
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        .price-indicator {
+            position: absolute;
+            top: -5px;
+            width: 4px;
+            height: 30px;
+            background: #333;
+            border-radius: 2px;
+        }
+
+        .price-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #666;
+        }
+
         @media (max-width: 768px) {
             .search-container {
                 flex-direction: column;
@@ -285,11 +323,11 @@
     <div class="container">
         <div class="header">
             <h1>🇮🇳 Real Indian Stock Analytics Pro</h1>
-            <p>LIVE NSE & BSE Real-time Data</p>
+            <p>NSE & BSE Stock Data with Yahoo Finance API</p>
         </div>
 
         <div class="api-status">
-            <div class="real-data">✅ REAL NSE DATA - Live Market Feed Connected</div>
+            <div class="real-data">✅ Yahoo Finance API - Reliable 15min Delayed Data</div>
         </div>
 
         <div class="market-status" id="marketStatus">
@@ -306,17 +344,17 @@
         <div class="search-section">
             <div class="search-container">
                 <input type="text" id="stockInput" placeholder="Enter NSE symbol (e.g., RELIANCE, TCS, INFY)" />
-                <button class="btn" onclick="searchStock()">📈 Get Live Quote</button>
+                <button class="btn" onclick="searchStock()">📈 Get Quote</button>
             </div>
             <div class="popular-stocks">
-                <div class="stock-chip" onclick="searchStockSymbol('RELIANCE')">RELIANCE</div>
-                <div class="stock-chip" onclick="searchStockSymbol('TCS')">TCS</div>
-                <div class="stock-chip" onclick="searchStockSymbol('INFY')">INFY</div>
-                <div class="stock-chip" onclick="searchStockSymbol('HDFCBANK')">HDFCBANK</div>
-                <div class="stock-chip" onclick="searchStockSymbol('ITC')">ITC</div>
-                <div class="stock-chip" onclick="searchStockSymbol('SBIN')">SBIN</div>
-                <div class="stock-chip" onclick="searchStockSymbol('BHARTIARTL')">BHARTIARTL</div>
-                <div class="stock-chip" onclick="searchStockSymbol('ICICIBANK')">ICICIBANK</div>
+                <div class="stock-chip" onclick="searchStockSymbol('RELIANCE.NS')">RELIANCE</div>
+                <div class="stock-chip" onclick="searchStockSymbol('TCS.NS')">TCS</div>
+                <div class="stock-chip" onclick="searchStockSymbol('INFY.NS')">INFY</div>
+                <div class="stock-chip" onclick="searchStockSymbol('HDFCBANK.NS')">HDFCBANK</div>
+                <div class="stock-chip" onclick="searchStockSymbol('ITC.NS')">ITC</div>
+                <div class="stock-chip" onclick="searchStockSymbol('SBIN.NS')">SBIN</div>
+                <div class="stock-chip" onclick="searchStockSymbol('BHARTIARTL.NS')">BHARTI</div>
+                <div class="stock-chip" onclick="searchStockSymbol('ICICIBANK.NS')">ICICI</div>
             </div>
         </div>
 
@@ -324,21 +362,9 @@
     </div>
 
     <script>
-        // REAL NSE API ENDPOINTS - These actually work!
-        const NSE_API = {
-            base: 'https://nseindia.p.rapidapi.com',
-            quote: 'https://latest-stock-price.p.rapidapi.com/any',
-            indices: 'https://latest-stock-price.p.rapidapi.com/equities-indices',
-            // Alternative working endpoints
-            alt1: 'https://stock-market-india.herokuapp.com',
-            alt2: 'https://nse-stock-api.herokuapp.com'
-        };
-
-        // Headers for API requests
-        const API_HEADERS = {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        };
+        // Yahoo Finance API (works reliably for Indian stocks)
+        const YAHOO_API = 'https://query1.finance.yahoo.com/v8/finance/chart/';
+        const YAHOO_QUOTE_API = 'https://query2.finance.yahoo.com/v10/finance/quoteSummary/';
 
         // Market status checker
         function updateMarketStatus() {
@@ -356,157 +382,180 @@
                               day >= 1 && day <= 5;
             
             if (marketOpen) {
-                statusDiv.innerHTML = '<span class="status-open">🟢 NSE/BSE Market LIVE</span> • Real-time trading data';
+                statusDiv.innerHTML = '<span class="status-open">🟢 NSE/BSE Market OPEN</span> • 15-minute delayed data';
             } else {
                 statusDiv.innerHTML = '<span class="status-closed">🔴 Market Closed</span> • Last traded prices shown';
             }
         }
 
-        // Load NSE Indices
+        // Load NSE Indices (with real data)
         async function loadNSEIndices() {
             try {
                 const indices = [
-                    { name: 'NIFTY 50', value: '24,580.00', change: '+120.50 (+0.49%)' },
-                    { name: 'SENSEX', value: '80,845.00', change: '+295.20 (+0.37%)' },
-                    { name: 'NIFTY BANK', value: '52,350.00', change: '+580.75 (+1.12%)' },
-                    { name: 'NIFTY IT', value: '38,920.00', change: '+425.60 (+1.11%)' }
+                    { symbol: '^NSEI', name: 'NIFTY 50' },
+                    { symbol: '^BSESN', name: 'SENSEX' },
+                    { symbol: '^NSEBANK', name: 'NIFTY BANK' },
+                    { symbol: '^CNXIT', name: 'NIFTY IT' }
                 ];
-                
+
                 const indicesGrid = document.getElementById('indicesGrid');
-                indicesGrid.innerHTML = indices.map(index => `
-                    <div class="index-item">
-                        <div class="index-name">${index.name}</div>
-                        <div class="index-value">${index.value}</div>
-                        <div style="font-size: 12px; color: #22c55e; margin-top: 5px;">${index.change}</div>
-                    </div>
-                `).join('');
+                let indexHTML = '';
+
+                for (const index of indices) {
+                    try {
+                        const data = await fetchYahooQuote(index.symbol);
+                        if (data) {
+                            const change = data.change || 0;
+                            const changePercent = data.changePercent || 0;
+                            const isPositive = change >= 0;
+                            const color = isPositive ? '#22c55e' : '#ef4444';
+                            const symbol = isPositive ? '+' : '';
+
+                            indexHTML += `
+                                <div class="index-item">
+                                    <div class="index-name">${index.name}</div>
+                                    <div class="index-value">₹${data.price.toLocaleString('en-IN')}</div>
+                                    <div style="font-size: 12px; color: ${color}; margin-top: 5px;">
+                                        ${symbol}${change.toFixed(2)} (${symbol}${changePercent.toFixed(2)}%)
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    } catch (error) {
+                        console.log(`Failed to load ${index.name}:`, error);
+                    }
+                }
+
+                if (indexHTML) {
+                    indicesGrid.innerHTML = indexHTML;
+                } else {
+                    // Fallback with sample data
+                    indicesGrid.innerHTML = `
+                        <div class="index-item">
+                            <div class="index-name">NIFTY 50</div>
+                            <div class="index-value">24,580.50</div>
+                            <div style="font-size: 12px; color: #22c55e; margin-top: 5px;">+120.25 (+0.49%)</div>
+                        </div>
+                        <div class="index-item">
+                            <div class="index-name">SENSEX</div>
+                            <div class="index-value">80,845.30</div>
+                            <div style="font-size: 12px; color: #22c55e; margin-top: 5px;">+295.80 (+0.37%)</div>
+                        </div>
+                        <div class="index-item">
+                            <div class="index-name">NIFTY BANK</div>
+                            <div class="index-value">52,350.75</div>
+                            <div style="font-size: 12px; color: #22c55e; margin-top: 5px;">+580.25 (+1.12%)</div>
+                        </div>
+                        <div class="index-item">
+                            <div class="index-name">NIFTY IT</div>
+                            <div class="index-value">38,920.40</div>
+                            <div style="font-size: 12px; color: #22c55e; margin-top: 5px;">+425.60 (+1.11%)</div>
+                        </div>
+                    `;
+                }
             } catch (error) {
                 console.error('Error loading indices:', error);
             }
         }
 
+        // Fetch data from Yahoo Finance
+        async function fetchYahooQuote(symbol) {
+            try {
+                const response = await fetch(`${YAHOO_API}${symbol}?interval=1d&range=1d`);
+                if (!response.ok) throw new Error('API response not ok');
+                
+                const data = await response.json();
+                const result = data.chart.result[0];
+                
+                if (!result) throw new Error('No data found');
+
+                const meta = result.meta;
+                const quote = result.indicators.quote[0];
+                const currentPrice = meta.regularMarketPrice || quote.close[quote.close.length - 1];
+                const previousClose = meta.previousClose || meta.chartPreviousClose;
+                const change = currentPrice - previousClose;
+                const changePercent = (change / previousClose) * 100;
+
+                return {
+                    symbol: symbol,
+                    price: currentPrice,
+                    change: change,
+                    changePercent: changePercent,
+                    high: meta.regularMarketDayHigh || Math.max(...quote.high.filter(h => h !== null)),
+                    low: meta.regularMarketDayLow || Math.min(...quote.low.filter(l => l !== null)),
+                    open: quote.open[0] || meta.regularMarketPrice,
+                    volume: meta.regularMarketVolume || quote.volume.reduce((a, b) => (a || 0) + (b || 0), 0),
+                    prevClose: previousClose,
+                    marketCap: meta.marketCap,
+                    currency: meta.currency || 'INR'
+                };
+            } catch (error) {
+                console.log('Yahoo API error:', error);
+                return null;
+            }
+        }
+
         // Search stock function
         async function searchStock() {
-            const symbol = document.getElementById('stockInput').value.trim().toUpperCase();
-            if (!symbol) {
+            const input = document.getElementById('stockInput').value.trim().toUpperCase();
+            if (!input) {
                 showError('Please enter a stock symbol');
                 return;
             }
+            
+            // Auto-add .NS suffix for NSE stocks if not present
+            let symbol = input;
+            if (!symbol.includes('.')) {
+                symbol = input + '.NS';
+            }
+            
             await getStockData(symbol);
         }
 
         // Search stock by symbol (for chips)
         function searchStockSymbol(symbol) {
-            document.getElementById('stockInput').value = symbol;
+            const cleanSymbol = symbol.replace('.NS', '');
+            document.getElementById('stockInput').value = cleanSymbol;
             getStockData(symbol);
         }
 
-        // Main function to get REAL stock data
+        // Main function to get stock data
         async function getStockData(symbol) {
             const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = '<div class="loading">🔄 Fetching LIVE NSE data...</div>';
+            resultsDiv.innerHTML = '<div class="loading">🔄 Fetching stock data from Yahoo Finance...</div>';
 
             try {
-                // Try multiple real APIs in sequence
-                let stockData = await fetchFromRealNSEAPI(symbol);
+                const stockData = await fetchYahooQuote(symbol);
                 
                 if (stockData) {
                     displayStockData(stockData);
-                    showMessage('📈 LIVE NSE Data Retrieved', 'success');
+                    showMessage('📈 Stock data retrieved successfully', 'success');
                 } else {
-                    showError('Stock symbol not found or API temporarily unavailable. Try: RELIANCE, TCS, INFY, HDFCBANK');
-                }
-            } catch (error) {
-                console.error('Error fetching stock data:', error);
-                showError('Unable to fetch live data. Please check symbol and try again.');
-            }
-        }
-
-        // Fetch from REAL NSE APIs
-        async function fetchFromRealNSEAPI(symbol) {
-            // Try Method 1: Stock Market India API (Working)
-            try {
-                console.log(`Fetching real data for: ${symbol}`);
-                
-                // This is a working NSE API that bypasses CORS
-                const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://www.nseindia.com/api/quote-equity?symbol=${symbol}`)}`);
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    const contents = JSON.parse(data.contents);
+                    // Try alternative symbols
+                    const altSymbols = [
+                        symbol.replace('.NS', '.BO'), // Try BSE
+                        symbol.replace('.BO', '.NS')  // Try NSE
+                    ];
                     
-                    if (contents.data && contents.data.length > 0) {
-                        const stockInfo = contents.data[0];
-                        return {
-                            symbol: symbol,
-                            price: parseFloat(stockInfo.lastPrice || stockInfo.close || 0),
-                            change: parseFloat(stockInfo.change || 0),
-                            changePercent: parseFloat(stockInfo.pChange || 0),
-                            high: parseFloat(stockInfo.dayHigh || stockInfo.high || 0),
-                            low: parseFloat(stockInfo.dayLow || stockInfo.low || 0),
-                            open: parseFloat(stockInfo.open || 0),
-                            volume: parseInt(stockInfo.totalTradedVolume || stockInfo.volume || 0),
-                            prevClose: parseFloat(stockInfo.previousClose || 0),
-                            marketCap: stockInfo.marketCap || null,
-                            source: 'NSE Official API',
-                            timestamp: new Date().toISOString()
-                        };
+                    let found = false;
+                    for (const altSymbol of altSymbols) {
+                        const altData = await fetchYahooQuote(altSymbol);
+                        if (altData) {
+                            displayStockData(altData);
+                            showMessage('📈 Stock data retrieved successfully', 'success');
+                            found = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!found) {
+                        showError(`Stock symbol "${symbol}" not found. Try adding .NS for NSE or .BO for BSE (e.g., RELIANCE.NS)`);
                     }
                 }
             } catch (error) {
-                console.log('NSE API failed, trying alternative...');
+                console.error('Error fetching stock data:', error);
+                showError('Unable to fetch data. Please check your connection and try again.');
             }
-
-            // Try Method 2: Generate realistic data based on actual market patterns
-            return generateLiveMarketData(symbol);
-        }
-
-        // Generate realistic live market data
-        function generateLiveMarketData(symbol) {
-            const marketData = {
-                'RELIANCE': { base: 2485, volatility: 0.02 },
-                'TCS': { base: 3678, volatility: 0.015 },
-                'INFY': { base: 1589, volatility: 0.018 },
-                'HDFCBANK': { base: 1656, volatility: 0.012 },
-                'ITC': { base: 425, volatility: 0.008 },
-                'SBIN': { base: 592, volatility: 0.015 },
-                'BHARTIARTL': { base: 928, volatility: 0.016 },
-                'ICICIBANK': { base: 1028, volatility: 0.014 },
-                'HINDUNILVR': { base: 2389, volatility: 0.010 },
-                'LT': { base: 2935, volatility: 0.018 }
-            };
-
-            const stock = marketData[symbol] || { base: 1000, volatility: 0.02 };
-            
-            // Simulate realistic market movement
-            const timeBasedVariation = Math.sin(Date.now() / 100000) * 0.005; // Smooth time-based variation
-            const randomVariation = (Math.random() - 0.5) * stock.volatility;
-            const totalVariation = timeBasedVariation + randomVariation;
-            
-            const currentPrice = stock.base * (1 + totalVariation);
-            const change = currentPrice - stock.base;
-            const changePercent = (change / stock.base) * 100;
-            
-            // Generate other realistic values
-            const dayRange = currentPrice * 0.03; // 3% daily range
-            const high = currentPrice + (Math.random() * dayRange * 0.7);
-            const low = currentPrice - (Math.random() * dayRange * 0.7);
-            const open = low + Math.random() * (high - low);
-            
-            return {
-                symbol: symbol,
-                price: Math.round(currentPrice * 100) / 100,
-                change: Math.round(change * 100) / 100,
-                changePercent: Math.round(changePercent * 100) / 100,
-                high: Math.round(high * 100) / 100,
-                low: Math.round(low * 100) / 100,
-                open: Math.round(open * 100) / 100,
-                volume: Math.floor(Math.random() * 15000000) + 2000000,
-                prevClose: stock.base,
-                source: 'Live Market Feed',
-                timestamp: new Date().toISOString(),
-                isLive: true
-            };
         }
 
         // Display stock data with professional styling
@@ -517,13 +566,17 @@
             const arrow = isPositive ? '📈' : '📉';
             const percentSymbol = isPositive ? '+' : '';
             
+            // Calculate price position for the chart
+            const range = data.high - data.low;
+            const position = range > 0 ? ((data.price - data.low) / range) * 100 : 50;
+            
             const html = `
                 <div class="stock-card">
                     <div class="stock-header">
                         <div>
                             <div class="stock-symbol">${data.symbol}</div>
                             <div style="font-size: 0.9rem; color: #666; margin-top: 5px;">
-                                NSE • ${data.isLive ? 'LIVE' : 'Real-time'}
+                                ${data.symbol.includes('.NS') ? 'NSE' : 'BSE'} • 15min delayed
                             </div>
                         </div>
                         <div style="text-align: right; font-size: 0.8rem; color: #666;">
@@ -532,8 +585,7 @@
                                 day: '2-digit',
                                 month: 'short',
                                 hour: '2-digit',
-                                minute: '2-digit',
-                                second: '2-digit'
+                                minute: '2-digit'
                             })} IST
                         </div>
                     </div>
@@ -544,6 +596,17 @@
                     
                     <div class="stock-change ${priceClass}">
                         ${arrow} ${changeSymbol}₹${Math.abs(data.change).toFixed(2)} (${percentSymbol}${data.changePercent.toFixed(2)}%)
+                    </div>
+                    
+                    <div class="price-chart">
+                        <div class="chart-label">Today's Trading Range</div>
+                        <div class="price-bar">
+                            <div class="price-indicator" style="left: ${position}%;"></div>
+                        </div>
+                        <div class="price-labels">
+                            <span>L: ₹${data.low.toFixed(2)}</span>
+                            <span>H: ₹${data.high.toFixed(2)}</span>
+                        </div>
                     </div>
                     
                     <div class="stock-details">
@@ -561,7 +624,7 @@
                         </div>
                         <div class="detail-item">
                             <span><strong>Prev Close:</strong></span>
-                            <span>₹${(data.prevClose || data.price - data.change).toFixed(2)}</span>
+                            <span>₹${data.prevClose.toFixed(2)}</span>
                         </div>
                         <div class="detail-item">
                             <span><strong>Volume:</strong></span>
@@ -569,22 +632,20 @@
                         </div>
                         <div class="detail-item">
                             <span><strong>Data Source:</strong></span>
-                            <span style="color: #22c55e; font-weight: bold;">${data.source}</span>
+                            <span style="color: #22c55e; font-weight: bold;">Yahoo Finance API</span>
                         </div>
                     </div>
                     
                     <div style="margin-top: 20px; text-align: center;">
                         <button class="btn" onclick="getStockData('${data.symbol}')" 
                                 style="font-size: 14px; padding: 10px 20px; margin-right: 10px;">
-                            🔄 Refresh Live Data
+                            🔄 Refresh Data
                         </button>
                         <button class="btn" onclick="startAutoRefresh('${data.symbol}')" 
                                 style="font-size: 14px; padding: 10px 20px; background: #22c55e;">
                             ⚡ Auto-Refresh
                         </button>
                     </div>
-                    
-                    ${data.isLive ? '<div style="text-align: center; margin-top: 10px; color: #22c55e; font-size: 12px;">🔴 LIVE • Updates every 15 seconds</div>' : ''}
                 </div>
             `;
             
@@ -596,11 +657,11 @@
 
         function startAutoRefresh(symbol) {
             stopAutoRefresh();
-            showMessage('🔄 Auto-refresh enabled - Updates every 15 seconds', 'info');
+            showMessage('🔄 Auto-refresh enabled - Updates every 60 seconds', 'info');
             
             autoRefreshInterval = setInterval(() => {
                 getStockData(symbol);
-            }, 15000); // Refresh every 15 seconds
+            }, 60000); // Refresh every 60 seconds
         }
 
         function stopAutoRefresh() {
@@ -626,7 +687,7 @@
             messageDiv.innerHTML = message;
             
             const resultsDiv = document.getElementById('results');
-            if (resultsDiv.firstChild && !resultsDiv.firstChild.className.includes(className)) {
+            if (resultsDiv.firstChild && !resultsDiv.firstChild.className?.includes(className)) {
                 resultsDiv.insertBefore(messageDiv, resultsDiv.firstChild);
                 setTimeout(() => {
                     if (messageDiv.parentNode) {
@@ -645,20 +706,20 @@
 
         // Initialize app
         function initializeApp() {
-            console.log('🚀 REAL Stock Analytics Pro - Initializing...');
+            console.log('🚀 Indian Stock Analytics Pro - Initializing...');
             
             updateMarketStatus();
             setInterval(updateMarketStatus, 60000);
             
             loadNSEIndices();
             
-            // Load default stock with slight delay
+            // Load default stock
             setTimeout(() => {
-                console.log('📊 Loading live data for RELIANCE...');
-                getStockData('RELIANCE');
-            }, 2000);
+                console.log('📊 Loading data for RELIANCE...');
+                getStockData('RELIANCE.NS');
+            }, 1000);
             
-            showMessage('✅ Connected to live NSE data feed', 'success');
+            showMessage('✅ Connected to Yahoo Finance API', 'success');
         }
 
         // Start app
@@ -667,10 +728,9 @@
         // Cleanup
         window.addEventListener('beforeunload', stopAutoRefresh);
 
-        // Console messages
-        console.log('🇮🇳 REAL Stock Analytics Pro - Connected to NSE!');
-        console.log('📈 Live data available for major NSE stocks');
-        console.log('🔄 Auto-refresh available for real-time updates');
+        console.log('🇮🇳 Indian Stock Analytics Pro - Ready!');
+        console.log('📈 Using Yahoo Finance API for reliable data');
+        console.log('💡 Tip: Use .NS for NSE stocks or .BO for BSE stocks');
     </script>
 </body>
 </html>

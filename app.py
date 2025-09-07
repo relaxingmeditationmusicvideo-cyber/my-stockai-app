@@ -1,34 +1,28 @@
 from flask import Flask, render_template, jsonify, request
 import yfinance as yf
-import pandas as pd
-import json
-from datetime import datetime, timedelta
-import requests
 import os
 
 app = Flask(__name__)
 
-# Configure for production
-app.config['ENV'] = 'production'
-app.config['DEBUG'] = False
-
 @app.route('/')
 def dashboard():
-    """Main dashboard page"""
     return render_template('dashboard.html')
 
 @app.route('/health')
 def health_check():
-    """Health check endpoint"""
     return jsonify({
         'status': 'healthy',
+<<<<<<< HEAD
         'timestamp': datetime.now().isoformat(),
+=======
+>>>>>>> 8a04252462383ea5f133f04060055f79b1810dde
         'service': 'Indian Stock Analytics Pro',
         'market': 'NSE/BSE'
     })
 
 @app.route('/api/stock/<symbol>')
 def get_stock_data(symbol):
+<<<<<<< HEAD
     """Get Indian stock data for a specific symbol"""
     try:
         # Add .NS (NSE) suffix if not present for Indian stocks
@@ -40,9 +34,16 @@ def get_stock_data(symbol):
         
         # Get stock info
         stock = yf.Ticker(symbol)
+=======
+    try:
+        if not symbol.endswith('.NS') and not symbol.endswith('.BO'):
+            symbol = symbol.upper() + '.NS'
+>>>>>>> 8a04252462383ea5f133f04060055f79b1810dde
         
-        # Get current price and basic info
+        stock = yf.Ticker(symbol)
+        hist = stock.history(period='5d')
         info = stock.info
+<<<<<<< HEAD
         hist = stock.history(period='5d')
         
         if hist.empty:
@@ -55,9 +56,14 @@ def get_stock_data(symbol):
             
             if hist.empty:
                 return jsonify({'error': 'Stock symbol not found. Try symbols like RELIANCE.NS, TCS.NS, INFY.NS'}), 404
+=======
+        
+        if hist.empty:
+            return jsonify({'error': 'Stock not found'}), 404
+>>>>>>> 8a04252462383ea5f133f04060055f79b1810dde
             
         current_price = hist['Close'].iloc[-1]
-        previous_close = info.get('previousClose', current_price)
+        previous_close = hist['Close'].iloc[-2] if len(hist) > 1 else current_price
         change = current_price - previous_close
         change_percent = (change / previous_close) * 100 if previous_close != 0 else 0
         
@@ -67,17 +73,23 @@ def get_stock_data(symbol):
             'change': round(change, 2),
             'change_percent': round(change_percent, 2),
             'volume': info.get('volume', 0),
+<<<<<<< HEAD
             'market_cap': info.get('marketCap', 0),
             'pe_ratio': info.get('trailingPE', 0),
             'company_name': info.get('longName', symbol),
             'currency': 'INR',
             'exchange': 'NSE' if symbol.endswith('.NS') else 'BSE',
             'timestamp': datetime.now().isoformat()
+=======
+            'company_name': info.get('longName', symbol),
+            'exchange': 'NSE' if symbol.endswith('.NS') else 'BSE'
+>>>>>>> 8a04252462383ea5f133f04060055f79b1810dde
         })
         
     except Exception as e:
         return jsonify({'error': f'Error fetching data: {str(e)}'}), 500
 
+<<<<<<< HEAD
 @app.route('/api/stock/<symbol>/history')
 def get_stock_history(symbol):
     """Get historical Indian stock data"""
@@ -119,13 +131,21 @@ def get_stock_history(symbol):
 @app.route('/api/nifty-indices')
 def get_nifty_indices():
     """Get major Indian market indices (NIFTY, SENSEX, etc.)"""
+=======
+@app.route('/api/nifty-indices')
+def get_nifty_indices():
+>>>>>>> 8a04252462383ea5f133f04060055f79b1810dde
     try:
         indices = {
             '^NSEI': 'NIFTY 50',
             '^BSESN': 'SENSEX',
+<<<<<<< HEAD
             '^NSEBANK': 'BANK NIFTY',
             '^NSEIT': 'NIFTY IT',
             'NIFTYNEXT50.NS': 'NIFTY NEXT 50'
+=======
+            '^NSEBANK': 'BANK NIFTY'
+>>>>>>> 8a04252462383ea5f133f04060055f79b1810dde
         }
         
         results = []
@@ -155,6 +175,7 @@ def get_nifty_indices():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+<<<<<<< HEAD
 @app.route('/api/search/<query>')
 def search_indian_stocks(query):
     """Search for Indian stocks by symbol or company name"""
@@ -202,6 +223,19 @@ def get_trending_indian_stocks():
                 stock = yf.Ticker(symbol)
                 info = stock.info
                 hist = stock.history(period='5d')
+=======
+@app.route('/api/trending')
+def get_trending_stocks():
+    try:
+        stocks = ['RELIANCE.NS', 'TCS.NS', 'HDFCBANK.NS', 'INFY.NS', 'ICICIBANK.NS']
+        
+        results = []
+        for symbol in stocks:
+            try:
+                stock = yf.Ticker(symbol)
+                hist = stock.history(period='2d')
+                info = stock.info
+>>>>>>> 8a04252462383ea5f133f04060055f79b1810dde
                 
                 if not hist.empty:
                     current = hist['Close'].iloc[-1]
@@ -251,4 +285,8 @@ def internal_error(error):
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
+<<<<<<< HEAD
     app.run(host='0.0.0.0', port=port, debug=False)
+=======
+    app.run(host='0.0.0.0', port=port)
+>>>>>>> 8a04252462383ea5f133f04060055f79b1810dde
